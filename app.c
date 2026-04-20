@@ -137,8 +137,9 @@ void app_process_action(void)
   uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
 
   // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
+  // intermediate cast to int64_t prevents overflow before /32768 brings result back to int32_t range
   // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
-  int32_t p_mbar  = ((int32_t)pressure - 16384) * 100000 / 32768;  // milli-bars (3 decimal places)
+  int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
   int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
 
   printf("P=%d.%03d bar  T=%d.%02d C\r\n",
