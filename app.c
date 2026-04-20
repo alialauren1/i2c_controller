@@ -15,6 +15,8 @@
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
 
+#define P_OFFSET_MBAR 0 // calibration offset
+
 static bool sensor_init(void) // checks if sensor responds to its address being called
 { // Send a zero-length write to confirm the sensor is on the bus
   I2C_TransferSeq_TypeDef seq;
@@ -137,10 +139,11 @@ void app_process_action(void)
   uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
 
   // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
-  // intermediate cast to int64_t prevents overflow before /32768 brings result back to int32_t range
   // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
   int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
   int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
+
+  p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
   printf("P=%d.%03d bar  T=%d.%02d C\r\n",
          (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
