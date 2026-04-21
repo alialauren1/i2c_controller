@@ -25,7 +25,7 @@ void print_pressure_task(void *p_arg);
 
 #define SENSOR_I2C_ADDR     0x40
 
-#define SAMPLE_INTERVAL_MS  9         // using 9ms — satisfies 8ms minimum conversion time with 1ms margin
+#define SAMPLE_INTERVAL_MS  500         // use min 8ms — satisfies 8ms minimum conversion time
 
 #define STATUS_FIXED_BIT    (1 << 6)  // always 1 on real Keller sensor
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
@@ -125,11 +125,12 @@ void keller_get_pressure_task(void *p_arg)  // correct
 
   printf("Sensor found at 0x%02X\r\n", SENSOR_I2C_ADDR);
 
-  // Trigger first conversion, then start millisecond timer
-  Keller_P_sensor_trigger();     // fire the first WRITE 0xAC
-  sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
-
   while (1){
+
+      // Trigger next conversion, then start timer
+       // required timing gap guaranteed between this WRITE and the next READ
+       Keller_P_sensor_trigger();
+       sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks
 
       // Read result from previous trigger
       uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
@@ -163,10 +164,6 @@ void keller_get_pressure_task(void *p_arg)  // correct
                      (int)(t_centi / 100),  (int)(t_centi % 100));
           }
       }
-      // Trigger next conversion, then start timer
-      // required timing gap guaranteed between this WRITE and the next READ
-      Keller_P_sensor_trigger();
-      sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks
   }
 
 }
