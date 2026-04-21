@@ -121,10 +121,8 @@ void keller_get_pressure_task(void *p_arg)  // correct
 
   while (1){
 
-      // Trigger next conversion, then start timer
-       // required timing gap guaranteed between this WRITE and the next READ
-       Keller_P_sensor_trigger();
-       sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks
+       Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
+       sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // // required timing gap guaranteed between this WRITE and the next READ
 
       // Read result from previous trigger
       uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
