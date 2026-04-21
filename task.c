@@ -142,52 +142,38 @@ void keller_get_pressure_task(void *p_arg)  // correct
       uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
       if (!Keller_P_sensor_read(raw, sizeof(raw))) { // try to read 5 bytes from sensor into raw
         printf("ERROR: I2C read failed\r\n");
-        Keller_P_sensor_trigger();
-        sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
-        continue; // skip to next loop iteration
       }
+      else {
+          uint8_t status = raw[0];
+          if (!(status & STATUS_FIXED_BIT)) {
+            printf("ERROR: Bad status byte 0x%02X — not a Keller sensor?\r\n", status);
+          }
+          else if (status & STATUS_BUSY_BIT) {
+            printf("ERROR: Sensor busy — conversion not ready\r\n");
+          }
+          else if (status & STATUS_MEM_ERR_BIT) {
+            printf("ERROR: Sensor memory error\r\n");
+          }
+          else {
+              uint16_t pressure = (uint16_t)((raw[1] << 8) | raw[2]);  // P [u16] — unsigned 16-bit integer per data sheet
+               uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
 
-      uint8_t status = raw[0];
+               // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
+               // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
+               int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
+               int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
 
-      if (!(status & STATUS_FIXED_BIT)) {
-        printf("ERROR: Bad status byte 0x%02X — not a Keller sensor?\r\n", status);
-        Keller_P_sensor_trigger();
-        sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
-        continue;
+              // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
+
+               printf("P=%d.%03d bar,T=%d.%02d C\r\n",
+                      (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
+                      (int)(t_centi / 100),  (int)(t_centi % 100));
+          }
       }
-
-      if (status & STATUS_BUSY_BIT) {
-        printf("ERROR: Sensor busy — conversion not ready\r\n");
-        Keller_P_sensor_trigger();
-        sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
-        continue;
-      }
-
-      if (status & STATUS_MEM_ERR_BIT) {
-        printf("ERROR: Sensor memory error\r\n");
-        Keller_P_sensor_trigger();
-        sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
-        continue;
-      }
-
-      uint16_t pressure = (uint16_t)((raw[1] << 8) | raw[2]);  // P [u16] — unsigned 16-bit integer per data sheet
-      uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
-
-      // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
-      // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
-      int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
-      int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
-
-     // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
-
-      printf("P=%d.%03d bar,T=%d.%02d C\r\n",
-             (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
-             (int)(t_centi / 100),  (int)(t_centi % 100));
-
       // Trigger next conversion, then start timer
       // required timing gap guaranteed between this WRITE and the next READ
       Keller_P_sensor_trigger();
-      sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
+      sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks
   }
 
 }
