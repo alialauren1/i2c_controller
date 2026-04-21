@@ -17,22 +17,27 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
-void keller_get_pressure_task(void *p_arg);
-void print_pressure_task(void *p_arg);
-
-//------------------------------For Keller_get_pressure_task-------------------------------------------
-
+//For Keller_get_pressure_task
 #define SENSOR_I2C_ADDR     0x40
-
 #define SAMPLE_INTERVAL_MS  500         // use min 8ms — satisfies 8ms minimum conversion time
-
 #define STATUS_FIXED_BIT    (1 << 6)  // always 1 on real Keller sensor
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
-
 #define P_OFFSET_MBAR 0 // calibration offset
 
+//For Keller_get_pressure_task_create
+#define KELLER_GET_PRESSURE_TASK_PRIO      11u
+#define KELLER_GET_PRESSURE_TASK_STK_SIZE  256u
+static CPU_STK keller_stk[KELLER_GET_PRESSURE_TASK_STK_SIZE];
+static OS_TCB  keller_tcb;
+
+//For Printing Pressure tasks
+#define PRINT_PRESSURE_TASK_PRIO      12u
+#define PRINT_PRESSURE_TASK_STK_SIZE  256u
+static CPU_STK print_stk[PRINT_PRESSURE_TASK_STK_SIZE];
+static OS_TCB  print_tcb;
+
+//For Keller_get_pressure_task
 static bool Keller_P_sensor_init(void) // checks if sensor responds to its address being called
 { // Send a zero-length write to confirm the sensor is on the bus
   I2C_TransferSeq_TypeDef seq;
@@ -48,6 +53,7 @@ static bool Keller_P_sensor_init(void) // checks if sensor responds to its addre
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone); // runs transaction on bus and returns true if sensor ACKed
 }
 
+//For Keller_get_pressure_task
 static bool Keller_P_sensor_trigger(void)
 { // Send 0xAC to start a conversion — result is ready after required millisecond duration
   I2C_TransferSeq_TypeDef seq;
@@ -63,6 +69,7 @@ static bool Keller_P_sensor_trigger(void)
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone);
 }
 
+//For Keller_get_pressure_task
 static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
 { // Read conversion result — 5 bytes: [status][P_hi][P_lo][T_hi][T_lo]
   I2C_TransferSeq_TypeDef seq;
@@ -77,21 +84,8 @@ static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone);
 }
 
-//--------------------------For Keller_get_pressure_task_create-----------------------------------------------
-
-#define KELLER_GET_PRESSURE_TASK_PRIO      11u
-#define KELLER_GET_PRESSURE_TASK_STK_SIZE  256u
-
-static CPU_STK keller_stk[KELLER_GET_PRESSURE_TASK_STK_SIZE];
-static OS_TCB  keller_tcb;
-
-//--------------------------For Printing Pressure tasks-------------------------------------------------------
-#define PRINT_PRESSURE_TASK_PRIO      12u
-#define PRINT_PRESSURE_TASK_STK_SIZE  256u
-
-static CPU_STK print_stk[PRINT_PRESSURE_TASK_STK_SIZE];
-static OS_TCB  print_tcb;
-
+void keller_get_pressure_task(void *p_arg); // forward declaration
+void print_pressure_task(void *p_arg); // forward declaration
 //-------------------------------------------------------------------------------------------------------------
 
 void keller_get_pressure_task_create(void) {
