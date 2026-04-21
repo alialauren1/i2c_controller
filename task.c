@@ -156,10 +156,7 @@ void keller_get_pressure_task(void *p_arg)  // correct
               printf("P=%d.%03d bar,T=%d.%02d C\r\n",
                      (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
                      (int)(t_centi / 100),  (int)(t_centi % 100));
-          }
-      }
-  }
-
+  }}}
 }
 
 void print_pressure_task_create(void) {
