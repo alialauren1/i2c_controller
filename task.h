@@ -8,7 +8,7 @@
 #ifndef TASK_H_
 #define TASK_H_
 
-void keller_acq_task_create(void);
-void print_task_create(void);
+void keller_get_pressure_task_create(void);
+void print_pressure_task_create(void);
 
 #endif /* TASK_H_ */

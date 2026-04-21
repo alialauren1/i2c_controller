@@ -21,8 +21,8 @@
 
 
 
-void keller_acq_task(void *p_arg);
-void print_task(void *p_arg);
+void keller_get_pressure_task(void *p_arg);
+void print_pressure_task(void *p_arg);
 
 //------------------------------For Keller_acq_task-------------------------------------------
 
@@ -101,12 +101,12 @@ static OS_TCB  print_tcb;
 
 //-------------------------------------------------------------------------
 
-void keller_acq_task_create(void) {
+void keller_get_pressure_task_create(void) {
   RTOS_ERR err;
 
   OSTaskCreate(&keller_tcb,
                "Keller ACQ",
-               keller_acq_task,
+               keller_get_pressure_task,
                NULL,
                KELLER_TASK_PRIO,
                &keller_stk[0],
@@ -119,7 +119,7 @@ void keller_acq_task_create(void) {
                &err);
 }
 
-void keller_acq_task(void *p_arg)  // correct
+void keller_get_pressure_task(void *p_arg)  // correct
 {
   (void)p_arg;
 
@@ -192,12 +192,12 @@ void keller_acq_task(void *p_arg)  // correct
 
 }
 
-void print_task_create(void) {
+void print_pressure_task_create(void) {
   RTOS_ERR err;
 
   OSTaskCreate(&print_tcb,
                "Print",
-               print_task,
+               print_pressure_task,
                NULL,
                PRINT_TASK_PRIO,
                &print_stk[0],
@@ -210,7 +210,7 @@ void print_task_create(void) {
                &err);
 }
 
-void print_task(void *p_arg) {
+void print_pressure_task(void *p_arg) {
   (void)p_arg;
 
   while (1) {
