@@ -51,7 +51,7 @@ static bool sensor_init(void) // checks if sensor responds to its address being 
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone); // runs transaction on bus and returns true if sensor ACKed
 }
 
-static bool sensor_trigger(void)
+static bool Keller_P_sensor_trigger(void)
 { // Send 0xAC to start a conversion — result is ready after required millisecond duration
   I2C_TransferSeq_TypeDef seq;
   uint8_t cmd = 0xAC;
@@ -66,7 +66,7 @@ static bool sensor_trigger(void)
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone);
 }
 
-static bool sensor_read(uint8_t *data, uint16_t len)
+static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
 { // Read conversion result — 5 bytes: [status][P_hi][P_lo][T_hi][T_lo]
   I2C_TransferSeq_TypeDef seq;
 
@@ -85,17 +85,17 @@ static bool                         sensor_ok  = false;  // default until proven
 //--------------------------For Keller_acq_task_create-----------------------------------------------
 
 
-#define KELLER_TASK_PRIO      11u
-#define KELLER_TASK_STK_SIZE  256u
+#define KELLER_GET_PRESSURE_TASK_PRIO      11u
+#define KELLER_GET_PRESSURE_TASK_STK_SIZE  256u
 
-static CPU_STK keller_stk[KELLER_TASK_STK_SIZE];
+static CPU_STK keller_stk[KELLER_GET_PRESSURE_TASK_STK_SIZE];
 static OS_TCB  keller_tcb;
 
 //--------------------------For Printing tasks-----------------------------------------------
-#define PRINT_TASK_PRIO      12u
-#define PRINT_TASK_STK_SIZE  256u
+#define PRINT_PRESSURE_TASK_PRIO      12u
+#define PRINT_PRESSURE_TASK_STK_SIZE  256u
 
-static CPU_STK print_stk[PRINT_TASK_STK_SIZE];
+static CPU_STK print_stk[PRINT_PRESSURE_TASK_STK_SIZE];
 static OS_TCB  print_tcb;
 
 
@@ -108,10 +108,10 @@ void keller_get_pressure_task_create(void) {
                "Keller ACQ",
                keller_get_pressure_task,
                NULL,
-               KELLER_TASK_PRIO,
+               KELLER_GET_PRESSURE_TASK_PRIO,
                &keller_stk[0],
-               (KELLER_TASK_STK_SIZE / 10u),
-               KELLER_TASK_STK_SIZE,
+               (KELLER_GET_PRESSURE_TASK_STK_SIZE / 10u),
+               KELLER_GET_PRESSURE_TASK_STK_SIZE,
                0u,
                0u,
                DEF_NULL,
@@ -133,16 +133,16 @@ void keller_get_pressure_task(void *p_arg)  // correct
   printf("Sensor found at 0x%02X\r\n", SENSOR_I2C_ADDR);
 
   // Trigger first conversion, then start millisecond timer
-  sensor_trigger();     // fire the first WRITE 0xAC
+  Keller_P_sensor_trigger();     // fire the first WRITE 0xAC
   sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
 
   while (1){
 
       // Read result from previous trigger
       uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
-      if (!sensor_read(raw, sizeof(raw))) { // try to read 5 bytes from sensor into raw
+      if (!Keller_P_sensor_read(raw, sizeof(raw))) { // try to read 5 bytes from sensor into raw
         printf("ERROR: I2C read failed\r\n");
-        sensor_trigger();
+        Keller_P_sensor_trigger();
         sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
         continue; // skip to next loop iteration
       }
@@ -151,21 +151,21 @@ void keller_get_pressure_task(void *p_arg)  // correct
 
       if (!(status & STATUS_FIXED_BIT)) {
         printf("ERROR: Bad status byte 0x%02X — not a Keller sensor?\r\n", status);
-        sensor_trigger();
+        Keller_P_sensor_trigger();
         sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
         continue;
       }
 
       if (status & STATUS_BUSY_BIT) {
         printf("ERROR: Sensor busy — conversion not ready\r\n");
-        sensor_trigger();
+        Keller_P_sensor_trigger();
         sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
         continue;
       }
 
       if (status & STATUS_MEM_ERR_BIT) {
         printf("ERROR: Sensor memory error\r\n");
-        sensor_trigger();
+        Keller_P_sensor_trigger();
         sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
         continue;
       }
@@ -186,7 +186,7 @@ void keller_get_pressure_task(void *p_arg)  // correct
 
       // Trigger next conversion, then start timer
       // required timing gap guaranteed between this WRITE and the next READ
-      sensor_trigger();
+      Keller_P_sensor_trigger();
       sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // available in sleeptimer component, blocks for 9ms
   }
 
@@ -199,10 +199,10 @@ void print_pressure_task_create(void) {
                "Print",
                print_pressure_task,
                NULL,
-               PRINT_TASK_PRIO,
+               PRINT_PRESSURE_TASK_PRIO,
                &print_stk[0],
-               (PRINT_TASK_STK_SIZE / 10u),
-               PRINT_TASK_STK_SIZE,
+               (PRINT_PRESSURE_TASK_STK_SIZE / 10u),
+               PRINT_PRESSURE_TASK_STK_SIZE,
                0u,
                0u,
                DEF_NULL,
