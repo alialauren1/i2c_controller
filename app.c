@@ -1,7 +1,4 @@
-
-
 #include "task.h"
-
 
 void app_init(void){
   //create tasks

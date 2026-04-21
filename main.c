@@ -42,7 +42,6 @@ int main(void)
 
     sl_system_process_action(); //dont remove, silicon labs components process action routine, must be called from super loop
 
-    //app_process_action(); // applicatin process
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 

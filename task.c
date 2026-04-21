@@ -36,7 +36,7 @@ void print_pressure_task(void *p_arg);
 
 #define P_OFFSET_MBAR 0 // calibration offset
 
-static bool sensor_init(void) // checks if sensor responds to its address being called
+static bool Keller_P_sensor_init(void) // checks if sensor responds to its address being called
 { // Send a zero-length write to confirm the sensor is on the bus
   I2C_TransferSeq_TypeDef seq;
   uint8_t dummy = 0;  //0 is placeholder byte
@@ -80,7 +80,7 @@ static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone);
 }
 
-static bool                         sensor_ok  = false;  // default until proven if true by line 35-51
+static bool Keller_P_sensor_ok  = false;  // default until proven if true by line 35-51
 
 //--------------------------For Keller_acq_task_create-----------------------------------------------
 
@@ -124,9 +124,9 @@ void keller_get_pressure_task(void *p_arg)  // correct
   (void)p_arg;
 
   // Initialize application
-  sensor_ok = sensor_init(); // checks to see if sensor responds to address being called
+  Keller_P_sensor_ok = Keller_P_sensor_init(); // checks to see if sensor responds to address being called
 
-  if (!sensor_ok) { // returns if sensor not ACKed
+  if (!Keller_P_sensor_ok) { // returns if sensor not ACKed
       printf("ERROR: No I2C ACK\r\n");
       return;}
 
@@ -156,18 +156,18 @@ void keller_get_pressure_task(void *p_arg)  // correct
           }
           else {
               uint16_t pressure = (uint16_t)((raw[1] << 8) | raw[2]);  // P [u16] — unsigned 16-bit integer per data sheet
-               uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
+              uint16_t temp_raw = (uint16_t)((raw[3] << 8) | raw[4]);  // T [u16] — unsigned 16-bit integer per data sheet
 
-               // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
-               // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
-               int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
-               int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
+              // Real Keller conversion formulas (0-100 bar sensor) — integer arithmetic, no float printf needed
+              // Pmax=100 bar hardcoded; Pmin=0x13-0x14, Pmax=0x15-0x16 stored in sensor memory (readable on startup)
+              int32_t p_mbar  = (int32_t)(((int64_t)pressure - 16384) * 100000 / 32768);  // milli-bars (3 decimal places)
+              int32_t t_centi = ((int32_t)(temp_raw >> 4) - 24) * 5 - 5000;    // centi-degrees C (2 decimal places)
 
               // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
-               printf("P=%d.%03d bar,T=%d.%02d C\r\n",
-                      (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
-                      (int)(t_centi / 100),  (int)(t_centi % 100));
+              printf("P=%d.%03d bar,T=%d.%02d C\r\n",
+                     (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
+                     (int)(t_centi / 100),  (int)(t_centi % 100));
           }
       }
       // Trigger next conversion, then start timer
