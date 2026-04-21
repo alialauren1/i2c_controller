@@ -8,8 +8,6 @@
 
 #include "os.h"
 #include "rtos_err.h"
-
-//#include "app.h"
 #include "task.h"
 #include "sl_i2cspm.h"
 #include "sl_i2cspm_instances.h"
@@ -20,11 +18,10 @@
 #include <stdbool.h>
 
 
-
 void keller_get_pressure_task(void *p_arg);
 void print_pressure_task(void *p_arg);
 
-//------------------------------For Keller_acq_task-------------------------------------------
+//------------------------------For Keller_get_pressure_task-------------------------------------------
 
 #define SENSOR_I2C_ADDR     0x40
 
@@ -80,10 +77,7 @@ static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
   return (I2CSPM_Transfer(sl_i2cspm_sensor, &seq) == i2cTransferDone);
 }
 
-static bool Keller_P_sensor_ok  = false;  // default until proven if true by line 35-51
-
-//--------------------------For Keller_acq_task_create-----------------------------------------------
-
+//--------------------------For Keller_get_pressure_task_create-----------------------------------------------
 
 #define KELLER_GET_PRESSURE_TASK_PRIO      11u
 #define KELLER_GET_PRESSURE_TASK_STK_SIZE  256u
@@ -91,15 +85,14 @@ static bool Keller_P_sensor_ok  = false;  // default until proven if true by lin
 static CPU_STK keller_stk[KELLER_GET_PRESSURE_TASK_STK_SIZE];
 static OS_TCB  keller_tcb;
 
-//--------------------------For Printing tasks-----------------------------------------------
+//--------------------------For Printing Pressure tasks-------------------------------------------------------
 #define PRINT_PRESSURE_TASK_PRIO      12u
 #define PRINT_PRESSURE_TASK_STK_SIZE  256u
 
 static CPU_STK print_stk[PRINT_PRESSURE_TASK_STK_SIZE];
 static OS_TCB  print_tcb;
 
-
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------
 
 void keller_get_pressure_task_create(void) {
   RTOS_ERR err;
@@ -124,7 +117,7 @@ void keller_get_pressure_task(void *p_arg)  // correct
   (void)p_arg;
 
   // Initialize application
-  Keller_P_sensor_ok = Keller_P_sensor_init(); // checks to see if sensor responds to address being called
+  bool Keller_P_sensor_ok = Keller_P_sensor_init(); // checks to see if sensor responds to address being called
 
   if (!Keller_P_sensor_ok) { // returns if sensor not ACKed
       printf("ERROR: No I2C ACK\r\n");
