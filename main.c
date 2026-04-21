@@ -30,8 +30,7 @@ int main(void)
 {
   sl_system_init(); // Initialize silicon labs device, system, services & protocol stacks
 
-  //app_init(); // Initialize application, runs once
-  keller_acq_task();
+  app_init(); // Initialize application, runs once
 
 
 #if defined(SL_CATALOG_KERNEL_PRESENT)
