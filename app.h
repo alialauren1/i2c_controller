@@ -22,11 +22,11 @@
  * Initialize application.
  ******************************************************************************/
 void app_init(void);
-void keller_acq_task(void);
+//void keller_acq_task(void);
 
 /***************************************************************************//**
  * App ticking function.
  ******************************************************************************/
-void app_process_action(void);
+//void app_process_action(void);
 
 #endif  // APP_H

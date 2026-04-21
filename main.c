@@ -30,8 +30,7 @@ int main(void)
 {
   sl_system_init(); // Initialize silicon labs device, system, services & protocol stacks
 
-  //app_init(); // Initialize application, runs once
-  keller_acq_task();
+  app_init(); // Initialize application, runs once
 
 
 #if defined(SL_CATALOG_KERNEL_PRESENT)
@@ -43,7 +42,6 @@ int main(void)
 
     sl_system_process_action(); //dont remove, silicon labs components process action routine, must be called from super loop
 
-    //app_process_action(); // applicatin process
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
