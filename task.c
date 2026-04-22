@@ -3,7 +3,19 @@
  *
  *  Created on: Apr 21, 2026
  *      Author: aliawolken
- */
+ *
+ ********************************************************************************
+ *
+ *      The following are Micrium Specific:
+ *        #include "os.h", #include "rtos_err.h",
+ *        the ..._task_create() functions, OSTaskCreate(),
+ *        DEF_NULL, OS_OPT_TASK_STK_CHK, OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR,
+ *        OS_TCB, CPU_STK, RTOS_ERR
+ *
+ *      The following is Silicon Labs specific:
+ *        sl_sleeptimer_delay_millisecond()
+ *
+ ********************************************************************************/
 
 
 #include "os.h"

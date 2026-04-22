@@ -33,7 +33,7 @@ int main(void)
   app_init(); // Initialize application, runs once
 
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CATALOG_KERNEL_PRESENT) // Adding kernel component causes this to be defined. For ex: Micrium OS Kernel
 
   sl_system_kernel_start(); // start kernel. tasks in app_init() start running
 
