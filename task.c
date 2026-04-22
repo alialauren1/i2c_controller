@@ -135,9 +135,9 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
   while (1){
 
-      // Read result from previous trigger
-      uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
+      uint8_t raw[5] = { 0 }; // 5-byte buffer to then fill with: [status][High P][Low P][High T][Low T]
 
+      // Read result from previous trigger
       bool read_P_sensor = Keller_P_sensor_read(raw,sizeof(raw)); // Read 5 bytes from sensor into raw
 
       Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
