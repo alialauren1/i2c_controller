@@ -19,7 +19,7 @@
 
 //For Keller_get_pressure_task
 #define SENSOR_I2C_ADDR     0x40
-#define SAMPLE_INTERVAL_MS  9         // use min 8ms — satisfies 8ms minimum conversion time
+#define SAMPLE_INTERVAL_MS  500         // use min 8ms — satisfies 8ms minimum conversion time
 #define STATUS_FIXED_BIT    (1 << 6)  // always 1 on real Keller sensor
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
@@ -106,7 +106,7 @@ void keller_get_pressure_task_create(void) {
                &err);
 }
 
-void keller_get_pressure_task(void *p_arg)  //
+void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 bar absolute reference meaning zero ref is 1 bar (atm)
 {
   (void)p_arg;
 
@@ -119,14 +119,27 @@ void keller_get_pressure_task(void *p_arg)  //
 
   printf("Sensor found at 0x%02X\r\n", SENSOR_I2C_ADDR);
 
+  bool first_loop = true; // flag to note first iteration
+
   while (1){
+
       // Read result from previous trigger
       uint8_t raw[5] = { 0 }; // 5-byte buffer: [status][High P][Low P][High T][Low T]
-      if (!Keller_P_sensor_read(raw, sizeof(raw))) { // try to read 5 bytes from sensor into raw
+
+      bool read_P_sensor = Keller_P_sensor_read(raw,sizeof(raw)); // Read 5 bytes from sensor into raw
+
+      Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
+
+      if (first_loop){
+          printf("first looooop\r\n");
+          first_loop = false;
+      }
+      else if (!read_P_sensor) { // if read transaction did not succeed
         printf("ERROR: I2C read failed\r\n");
       }
       else {
           uint8_t status = raw[0];
+
           if (!(status & STATUS_FIXED_BIT)) {
             printf("ERROR: Bad status byte 0x%02X — not a Keller sensor?\r\n", status);
           }
@@ -147,13 +160,15 @@ void keller_get_pressure_task(void *p_arg)  //
 
               // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
-              printf("P=%d.%03d bar,T=%d.%02d C\r\n",
-                     (int)(p_mbar  / 1000), (int)(p_mbar  % 1000),
-                     (int)(t_centi / 100),  (int)(t_centi % 100));
+              printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
+                     p_mbar < 0 ? "-" : "",
+                     (int)(abs(p_mbar) / 1000),
+                     (int)(abs(p_mbar) % 1000),
+                     (int)(t_centi / 100),
+                     (int)(t_centi % 100));
 
           }}
 
-      Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
       sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // // required timing gap guaranteed between this WRITE and the next READ
   }
 }
