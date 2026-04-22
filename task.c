@@ -31,7 +31,7 @@
 
 //For Keller_get_pressure_task
 #define SENSOR_I2C_ADDR     0x40
-#define SAMPLE_INTERVAL_MS  500         // use min 8ms — satisfies 8ms minimum conversion time
+#define SAMPLE_INTERVAL_MS  9         // use min 8ms — satisfies 8ms minimum conversion time
 #define STATUS_FIXED_BIT    (1 << 6)  // always 1 on real Keller sensor
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
@@ -136,11 +136,14 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
   while (1){
 
       uint8_t raw[5] = { 0 }; // 5-byte buffer to then fill with: [status][High P][Low P][High T][Low T]
+      uint32_t timer_start, timer_end, elapsed_ms; // variables
 
       // Read result from previous trigger
       bool read_P_sensor = Keller_P_sensor_read(raw,sizeof(raw)); // Read 5 bytes from sensor into raw
 
       Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
+
+      timer_start = sl_sleeptimer_get_tick_count();
 
       if (first_loop){
           printf("first looooop\r\n");
@@ -181,8 +184,15 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
           }}
 
-      sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // // required timing gap guaranteed between this WRITE and the next READ
+      timer_end = sl_sleeptimer_get_tick_count(); // hardware tick count captured after post processing
+      elapsed_ms = sl_sleeptimer_tick_to_ms(timer_end- timer_start);
+      //sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // // required timing gap guaranteed between this WRITE and the next READ
+
+      if (elapsed_ms < SAMPLE_INTERVAL_MS){
+          sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS - elapsed_ms);
+      }
   }
+
 }
 
 void print_pressure_task_create(void) {
