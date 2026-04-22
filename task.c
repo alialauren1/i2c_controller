@@ -12,8 +12,11 @@
  *        DEF_NULL, OS_OPT_TASK_STK_CHK, OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR,
  *        OS_TCB, CPU_STK, RTOS_ERR
  *
+ *        in keller_get_pressure_task(), the timing mechanism is Micrium OS specific because it allows non blocking of CPU:
+ *          OSTimeDlyHMSM
+ *
  *      The following is Silicon Labs specific:
- *        sl_sleeptimer_delay_millisecond()
+ *        sl_sleeptimer_...()
  *
  ********************************************************************************/
 
@@ -188,8 +191,12 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
       elapsed_ms = sl_sleeptimer_tick_to_ms(timer_end- timer_start);
       //sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS); // // required timing gap guaranteed between this WRITE and the next READ
 
+      RTOS_ERR os_time_delay_err; // should be zero if delay completes successfully below
       if (elapsed_ms < SAMPLE_INTERVAL_MS){
-          sl_sleeptimer_delay_millisecond(SAMPLE_INTERVAL_MS - elapsed_ms);
+          OSTimeDlyHMSM(0,0,0,                          // hours, minutes, seconds
+                        SAMPLE_INTERVAL_MS-elapsed_ms,  // delay needed
+                        OS_OPT_TIME_HMSM_STRICT,        // Micrium option of strict timing mode
+                        &os_time_delay_err);            // error output (should be zero)
       }
   }
 
