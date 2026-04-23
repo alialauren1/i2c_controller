@@ -14,9 +14,13 @@
  *
  *        in keller_get_pressure_task(), the timing mechanism is Micrium OS specific because it allows non blocking of CPU:
  *          OSTimeDlyHMSM
+ *          RTOS_ERR
  *
  *      The following is Silicon Labs specific:
  *        sl_sleeptimer_...()
+ *
+ *      TODO:
+ *        If need to refactor for diff OS system, change ....
  *
  ********************************************************************************/
 
@@ -31,6 +35,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "Keller_Pressure_Buffer.h"
+#include <stdlib.h>
 
 //For Keller_get_pressure_task
 #define SENSOR_I2C_ADDR     0x40
@@ -136,6 +142,8 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
   bool first_loop = true; // flag to note first iteration
 
+  Keller_buffer_init(); // initialize buffer
+
   while (1){
 
       uint8_t raw[5] = { 0 }; // 5-byte buffer to then fill with: [status][High P][Low P][High T][Low T]
@@ -178,12 +186,13 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
               // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
-              printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
-                     p_mbar < 0 ? "-" : "",
-                     (int)(abs(p_mbar) / 1000),
-                     (int)(abs(p_mbar) % 1000),
-                     (int)(t_centi / 100),
-                     (int)(t_centi % 100));
+//              printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
+//                     p_mbar < 0 ? "-" : "",
+//                     (int)(abs(p_mbar) / 1000),
+//                     (int)(abs(p_mbar) % 1000),
+//                     (int)(t_centi / 100),
+//                     (int)(t_centi % 100));
+              Keller_buffer_write(p_mbar, t_centi);
 
           }}
 
@@ -224,6 +233,14 @@ void print_pressure_task(void *p_arg) {
   (void)p_arg;
 
   while (1) {
-      // drain circular buffer and printf — to be implemented
+      // drain circular buffer and printf
+      keller_sample_t sample;
+      if (Keller_buffer_read(&sample)) {
+          printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
+                 sample.p_mbar < 0 ? "-" : "",
+                 (int)(abs(sample.p_mbar) / 1000),
+                 (int)(abs(sample.p_mbar) % 1000),
+                 (int)(sample.t_centi / 100),
+                 (int)(sample.t_centi % 100));}
   }
 }
