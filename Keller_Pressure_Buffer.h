@@ -18,9 +18,9 @@ typedef struct {
     int32_t t_centi;
 } keller_sample_t;
 
-void Keller_buffer_init(void);
-bool Keller_buffer_write(int32_t p_mbar, int32_t t_centi);
-bool Keller_buffer_read(keller_sample_t *sample);
-bool Keller_buffer_is_empty(void);
+void keller_buffer_init(void);
+bool keller_buffer_write(int32_t p_mbar, int32_t t_centi);
+bool keller_buffer_read(keller_sample_t *sample);
+bool keller_buffer_is_empty(void);
 
 #endif /* KELLER_PRESSURE_BUFFER_H_ */

@@ -60,7 +60,7 @@ static CPU_STK print_stk[PRINT_PRESSURE_TASK_STK_SIZE];
 static OS_TCB  print_tcb;
 
 //For Keller_get_pressure_task
-static bool Keller_P_sensor_init(void) // checks if sensor responds to its address being called
+static bool keller_p_sensor_init(void) // checks if sensor responds to its address being called
 { // Send a zero-length write to confirm the sensor is on the bus
   I2C_TransferSeq_TypeDef seq;
   uint8_t dummy = 0;  //0 is placeholder byte
@@ -76,7 +76,7 @@ static bool Keller_P_sensor_init(void) // checks if sensor responds to its addre
 }
 
 //For Keller_get_pressure_task
-static bool Keller_P_sensor_trigger(void)
+static bool keller_p_sensor_trigger(void)
 { // Send 0xAC to start a conversion — result is ready after required millisecond duration
   I2C_TransferSeq_TypeDef seq;
   uint8_t cmd = 0xAC;
@@ -92,7 +92,7 @@ static bool Keller_P_sensor_trigger(void)
 }
 
 //For Keller_get_pressure_task
-static bool Keller_P_sensor_read(uint8_t *data, uint16_t len)
+static bool keller_p_sensor_read(uint8_t *data, uint16_t len)
 { // Read conversion result — 5 bytes: [status][P_hi][P_lo][T_hi][T_lo]
   I2C_TransferSeq_TypeDef seq;
 
@@ -133,9 +133,9 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
   (void)p_arg;
 
   // Initialize application
-  bool Keller_P_sensor_ok = Keller_P_sensor_init(); // checks to see if sensor responds to address being called
+  bool keller_p_sensor_ok = keller_p_sensor_init(); // checks to see if sensor responds to address being called
 
-  if (!Keller_P_sensor_ok) { // returns if sensor not ACKed
+  if (!keller_p_sensor_ok) { // returns if sensor not ACKed
       printf("ERROR: No I2C ACK\r\n");
       return;}
 
@@ -147,7 +147,7 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
   int32_t t_sum = 0;
   int avg_sample_counter = 0;
 
-  Keller_buffer_init(); // initialize buffer
+  keller_buffer_init(); // initialize buffer
 
   while (1){
 
@@ -155,9 +155,9 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
       uint32_t timer_start, timer_end, elapsed_ms; // variables
 
       // Read result from previous trigger
-      bool read_P_sensor = Keller_P_sensor_read(raw,sizeof(raw)); // Read 5 bytes from sensor into raw
+      bool read_p_sensor = keller_p_sensor_read(raw,sizeof(raw)); // Read 5 bytes from sensor into raw
 
-      Keller_P_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
+      keller_p_sensor_trigger(); // Trigger next conversion (Trigger is essentially Write but it doesnt transfer data just triggers a conversion on sensor)
 
       timer_start = sl_sleeptimer_get_tick_count();
 
@@ -165,7 +165,7 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
           printf("first looooop\r\n");
           first_loop = false;
       }
-      else if (!read_P_sensor) { // if read transaction did not succeed
+      else if (!read_p_sensor) { // if read transaction did not succeed
         printf("ERROR: I2C read failed\r\n");
       }
       else {
@@ -195,7 +195,7 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
               t_sum += t_centi;
               avg_sample_counter++;
               if (avg_sample_counter==AVG_SAMPLE_COUNT){
-                  Keller_buffer_write(p_sum/AVG_SAMPLE_COUNT, t_sum/AVG_SAMPLE_COUNT);
+                  keller_buffer_write(p_sum/AVG_SAMPLE_COUNT, t_sum/AVG_SAMPLE_COUNT);
                   p_sum=0;
                   t_sum=0;
                   avg_sample_counter=0;
@@ -242,7 +242,7 @@ void print_pressure_task(void *p_arg) {
   while (1) {
       // drain circular buffer and printf
       keller_sample_t sample;
-      if (Keller_buffer_read(&sample)) {
+      if (keller_buffer_read(&sample)) {
           printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
                  sample.p_mbar < 0 ? "-" : "",
                  (int)(abs(sample.p_mbar) / 1000),

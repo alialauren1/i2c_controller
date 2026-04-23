@@ -13,13 +13,13 @@ static int head  = 0;
 static int tail  = 0;
 static int count = 0;
 
-void Keller_buffer_init(void) {
+void keller_buffer_init(void) {
     head  = 0;
     tail  = 0;
     count = 0;
 }
 
-bool Keller_buffer_write(int32_t p_mbar, int32_t t_centi) {
+bool keller_buffer_write(int32_t p_mbar, int32_t t_centi) {
     if (count >= KELLER_BUFFER_SIZE) {
         return false;
     }
@@ -30,7 +30,7 @@ bool Keller_buffer_write(int32_t p_mbar, int32_t t_centi) {
     return true;
 }
 
-bool Keller_buffer_read(keller_sample_t *sample) {
+bool keller_buffer_read(keller_sample_t *sample) {
     if (count == 0) {
         return false;
     }
@@ -40,6 +40,6 @@ bool Keller_buffer_read(keller_sample_t *sample) {
     return true;
 }
 
-bool Keller_buffer_is_empty(void) {
+bool keller_buffer_is_empty(void) {
     return count == 0;
 }
