@@ -45,6 +45,7 @@
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
 #define P_OFFSET_MBAR 0 // calibration offset
+#define AVG_SAMPLE_COUNT 10 // amount of samples that we use to average before printing
 
 //For Keller_get_pressure_task_create
 #define KELLER_GET_PRESSURE_TASK_PRIO      11u
@@ -142,6 +143,10 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
   bool first_loop = true; // flag to note first iteration
 
+  int32_t p_sum = 0;
+  int32_t t_sum = 0;
+  int avg_sample_counter = 0;
+
   Keller_buffer_init(); // initialize buffer
 
   while (1){
@@ -186,13 +191,15 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
               // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
-//              printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
-//                     p_mbar < 0 ? "-" : "",
-//                     (int)(abs(p_mbar) / 1000),
-//                     (int)(abs(p_mbar) % 1000),
-//                     (int)(t_centi / 100),
-//                     (int)(t_centi % 100));
-              Keller_buffer_write(p_mbar, t_centi);
+              p_sum += p_mbar;
+              t_sum += t_centi;
+              avg_sample_counter++;
+              if (avg_sample_counter==AVG_SAMPLE_COUNT){
+                  Keller_buffer_write(p_sum/AVG_SAMPLE_COUNT, t_sum/AVG_SAMPLE_COUNT);
+                  p_sum=0;
+                  t_sum=0;
+                  avg_sample_counter=0;
+              }
 
           }}
 
