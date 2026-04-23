@@ -143,8 +143,8 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
   bool first_loop = true; // flag to note first iteration
 
-  int32_t p_sum = 0;
-  int32_t t_sum = 0;
+  int32_t pressure_sum = 0;
+  int32_t temp_sum = 0;
   int avg_sample_counter = 0;
 
   keller_buffer_init(); // initialize buffer
@@ -191,13 +191,13 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
               // p_mbar -= P_OFFSET_MBAR; // shorthand for replace p_mbar with p_mbar - p offset
 
-              p_sum += p_mbar;
-              t_sum += t_centi;
+              pressure_sum += p_mbar;
+              temp_sum += t_centi;
               avg_sample_counter++;
               if (avg_sample_counter==AVG_SAMPLE_COUNT){
-                  keller_buffer_write(p_sum/AVG_SAMPLE_COUNT, t_sum/AVG_SAMPLE_COUNT);
-                  p_sum=0;
-                  t_sum=0;
+                  keller_buffer_write(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT);
+                  pressure_sum=0;
+                  temp_sum=0;
                   avg_sample_counter=0;
               }
 
