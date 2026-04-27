@@ -87,6 +87,7 @@
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/system/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/sleeptimer/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/udelay/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/FatFS_inc}&quot;"/>
 								</option>
 								<inputType id="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input.1603178841" superClass="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
