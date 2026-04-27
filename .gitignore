@@ -7,7 +7,7 @@ imported_project_report.html
 .projectlinkstore
 
 # Ignore default build directory
-GNU\ ARM\ v10.3.1\ -\ Default/
+GNU\ ARM\ v10.3.1\ -\ Debug/
 
 # Include autogen linker script
 !autogen/linkerfile.ld
