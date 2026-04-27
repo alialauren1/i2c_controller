@@ -1,0 +1,190 @@
+/*
+ * mod_sd.c
+ *
+ *  Created on: Dec 2, 2025
+ *      Author: lwelsh
+ */
+
+#include "FreeRTOS.h"
+#include "sl_sleeptimer.h"
+#include "em_gpio.h"
+#include "em_cmu.h"
+#include "ff.h"
+#include "diskio.h"
+#include "string.h"
+#include "task.h"
+#include "semphr.h"
+#include <stdio.h>
+#include "app.h"
+#include "mod_sd.h"
+//#include <stdalign.h>
+
+TaskHandle_t mod_sd_init_task_handle;
+TaskHandle_t mod_sd_cmd_task_handle;
+//TaskHandle_t mod_sd_task_2_handle;
+SemaphoreHandle_t sync_sem;
+
+static FATFS fat_fs;
+//static FIL fp;
+//static FIL fp_2;
+//
+//static char test_msg[] = "sup fella";
+//static TCHAR test_tch[16];
+//static TCHAR test_tch_2[16];
+//
+//#define TEST_BUF_LEN 1024 * 8
+//
+//static char test_buf[TEST_BUF_LEN] __attribute__ ((aligned (sizeof(uint32_t))));
+//static char comp_buf[TEST_BUF_LEN];
+//
+//#define FMT_BUF_LEN 512 * 16
+//static BYTE fmt_buf[FMT_BUF_LEN];
+
+
+void mod_sd_enable_hardware()
+{
+  CMU_ClockEnable(cmuClock_GPIO, true);
+
+
+  // Soldered sdCard slot
+  GPIO_PinModeSet(gpioPortD, 6u, gpioModePushPull, 1); //SD_EN
+  GPIO_PinOutSet(gpioPortD, 6u);
+
+  sl_sleeptimer_delay_millisecond(10);
+
+  //ALB TODO Make CD works
+
+  // 2024 12 12 LW: Changing to CD LOC0 (PF8)
+  //GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 1);              // SDIO_CD
+  GPIO_PinModeSet(gpioPortF, 8, gpioModeInput, 1);              // SDIO_CD
+  GPIO_PinModeSet(gpioPortE, 15, gpioModePushPullAlternate, 0); // SDIO_CMD
+  GPIO_PinModeSet(gpioPortE, 14, gpioModePushPullAlternate, 1); // SDIO_CLK
+  GPIO_PinModeSet(gpioPortA, 0, gpioModePushPullAlternate, 1);  // SDIO_DAT0
+  GPIO_PinModeSet(gpioPortA, 1, gpioModePushPullAlternate, 1);  // SDIO_DAT1
+  GPIO_PinModeSet(gpioPortA, 2, gpioModePushPullAlternate, 1);  // SDIO_DAT2
+  GPIO_PinModeSet(gpioPortA, 3, gpioModePushPullAlternate, 1);  // SDIO_DAT3
+
+  sl_sleeptimer_delay_millisecond(1);
+
+}
+
+
+FATFS* mod_sd_get_fs()
+{
+  return &fat_fs;
+}
+
+void mod_sd_get_bytecount(uint32_t kb_cnt, mod_sd_bytecount_ptr_t bytes)
+{
+
+  // ">> 1" is equivalent to "multiply by 512 to get bytes, then divide by 1024 to get kilobytes"
+  float val = 0;
+  float dec = 0;
+
+//  fs_uspc_dec = (float)(fs_uspc - ((uint8_t)fs_uspc))*100;
+  uint16_t kb = 1000;
+
+  if(kb_cnt < kb)
+  {
+    bytes->pfx = 'K';
+    bytes->val = kb_cnt;
+    bytes->dec = 0;
+  }
+  else
+  {
+    if(kb_cnt < kb * kb)
+    {
+      bytes->pfx = 'M';
+      val = (float)kb_cnt / kb;
+    }
+    else if(kb_cnt < kb * kb * kb)
+    {
+      bytes->pfx = 'G';
+      val = (float)kb_cnt / (kb * kb);
+    }
+    else
+    {
+      bytes->pfx = 'T';
+      val = (float)kb_cnt / (kb * kb * kb);
+    }
+
+    bytes->val = (uint32_t) val;
+    dec = (float)(val - ((uint32_t)val))*100;
+    bytes->dec = (uint8_t) dec;
+  }
+}
+
+
+// 2025 12 05 LW: Function for converting strings (char) to UTF-8 (TCHAR) for path names
+void mod_sd_ff_encode(char* str, TCHAR* out, uint32_t len)
+{
+  uint32_t i;
+  for(i = 0; i < len; i++)
+  {
+      out[i] = ff_convert(str[i], 1);
+  }
+  out[i] = ff_convert('\0', 1);
+}
+
+// 2025 12 05 LW: Function for converting UTF-8 (TCHAR) to string (char)
+void mod_sd_ff_decode(TCHAR* tstr, char* out)
+{
+  int i = 0;
+  TCHAR t = 0xff;
+  while(t != 0)
+  {
+      t = tstr[i];
+      out[i++] = (char)t;
+  }
+}
+
+// 2026 02 20 LW: Task to initialize the SD card on startup
+void mod_sd_init_task()
+{
+  volatile FRESULT res;
+
+
+  mod_sd_enable_hardware();
+
+  SEGGER_SYSVIEW_WarnfHost("mount");
+  res = f_mount(&fat_fs,(TCHAR*)"", 1);
+
+  if(res == (FRESULT)RES_OK)
+  {
+      printf("FAT fs mounted successfully.\r\n");
+  }
+  else
+  {
+      printf("Unable to mount FAT fs.\r\n");
+  }
+
+
+  xTaskNotifyGive(mod_som_init_task_handle);
+
+
+  for( ;; )
+  {
+      vTaskDelete(NULL);
+  }
+
+}
+
+
+
+void mod_sd_create_init_task()
+{
+  init_task_amt++;
+
+  // TODO: Review how/when this semaphore should be locked/unlocked
+  sync_sem = xSemaphoreCreateBinary();
+  xSemaphoreGive(sync_sem);
+
+  xTaskCreate(mod_sd_init_task,
+              "mod_sd_init",
+              configMINIMAL_STACK_SIZE,
+              NULL,
+              18,
+              &mod_sd_init_task_handle);
+
+}
+
