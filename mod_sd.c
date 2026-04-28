@@ -32,6 +32,8 @@ OS_SEM sync_sem;
 
 
 static volatile FATFS fat_fs;
+
+static RTOS_ERR err;
 //static FIL fp;
 //static FIL fp_2;
 //
@@ -178,7 +180,7 @@ void mod_sd_init_task()
   {
 //      vTaskDelete(NULL);
       OSTaskDel(DEF_NULL,
-                DEF_NULL);
+                &err);
   }
 
 }
