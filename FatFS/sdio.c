@@ -199,7 +199,7 @@ SD_RES SDIO_ReadSingleBlock(SDIO_TypeDef *sdio_t,
 {
   SDIO_S_TimeoutSettingonDATLine(sdio_t);
 
-//  SEGGER_SYSVIEW_ErrorfHost("RSB %d", SD_origin_u32);
+  SEGGER_SYSVIEW_ErrorfHost("RSB %d", SD_origin_u32);
 
   SDIO_S_ClearFlag( (_SDIO_IFCR_CMDCOM_MASK | _SDIO_IFCR_BFRRDRDY_MASK | _SDIO_IFCR_TRANCOM_MASK) );
 
@@ -225,7 +225,7 @@ SD_RES SDIO_ReadMultipleBlocks(SDIO_TypeDef *sdio_t,
 {
   SDIO_S_TimeoutSettingonDATLine(sdio_t);
 
-//  SEGGER_SYSVIEW_ErrorfHost("RMB %d %d", SD_origin_u32, blocks);
+  SEGGER_SYSVIEW_ErrorfHost("RMB %d %d", SD_origin_u32, blocks);
 
   SDIO_S_SetUpADMA2(sdio_t, &adma2_desc, destination_pu32, blocks);
 
@@ -262,7 +262,7 @@ SD_RES SDIO_WriteSingleBlock( SDIO_TypeDef *sdio_t,
 
   SDIO_S_TimeoutSettingonDATLine(sdio_t);
 
-//  SEGGER_SYSVIEW_ErrorfHost("WSB %d", SD_dest_u32);
+  SEGGER_SYSVIEW_ErrorfHost("WSB %d", SD_dest_u32);
 
   SDIO_S_ClearFlag( (_SDIO_IFCR_CMDCOM_MASK | _SDIO_IFCR_BFRWRRDY_MASK | _SDIO_IFCR_TRANCOM_MASK) );
 
@@ -278,7 +278,7 @@ SD_RES SDIO_WriteSingleBlock( SDIO_TypeDef *sdio_t,
   // 20. CLear Transfer completed status
   SDIO_S_ClearFlag(_SDIO_IFCR_TRANCOM_MASK);
 
-//  SEGGER_SYSVIEW_PrintfHost("DONE");
+  SEGGER_SYSVIEW_PrintfHost("DONE");
 
   return status;
 }
@@ -297,7 +297,7 @@ SD_RES SDIO_WriteMultipleBlocks(SDIO_TypeDef *sdio_t,
 
   SD_RES status = SD_OK;
 
-//  SEGGER_SYSVIEW_ErrorfHost("WMB %d %d", SD_dest_u32, blocks);
+  SEGGER_SYSVIEW_ErrorfHost("WMB %d %d", SD_dest_u32, blocks);
 
 
   SDIO_S_SetUpADMA2(sdio_t, &adma2_desc, origin_pu32, blocks);
@@ -312,7 +312,7 @@ SD_RES SDIO_WriteMultipleBlocks(SDIO_TypeDef *sdio_t,
   // 20. CLear Transfer completed status
   SDIO_S_ClearFlag(_SDIO_IFCR_TRANCOM_MASK);
 
-//  SEGGER_SYSVIEW_PrintfHost("DONE");
+  SEGGER_SYSVIEW_PrintfHost("DONE");
 //  GPIO_PinModeSet(gpioPortA, 6, gpioModePushPull, 0);
   return status;
 }

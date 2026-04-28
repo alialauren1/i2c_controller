@@ -1140,5 +1140,60 @@
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/ports/source/gnu/armv7m_os_cpu_c.c</locationURI>
 		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/Global.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/Global.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW_Int.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/SEGGER/SEGGER_SYSVIEW_Int.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/Sample/MicriumOSKernel/SEGGER_SYSVIEW_MicriumOSKernel.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/Sample/MicriumOSKernel/SEGGER_SYSVIEW_MicriumOSKernel.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/Sample/MicriumOSKernel/os_trace_events.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/Sample/MicriumOSKernel/os_trace_events.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/util/third_party/segger/systemview/Sample/MicriumOSKernel/Config/Cortex-M/SEGGER_SYSVIEW_Config_MicriumOSKernel.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/util/third_party/segger/systemview/Sample/MicriumOSKernel/Config/Cortex-M/SEGGER_SYSVIEW_Config_MicriumOSKernel.c</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
