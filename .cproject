@@ -87,6 +87,7 @@
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/system/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/sleeptimer/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/platform/service/udelay/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/FatFS_inc}&quot;"/>
 								</option>
 								<inputType id="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input.1603178841" superClass="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -190,8 +191,13 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt.debug#com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt:10.3.1.20210824.669032227" name="ccsbcs.c" rcbsApplicability="disable" resourcePath="FatFS/ccsbcs.c" toolsToInvoke="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base.1188858085.6752523">
+						<tool id="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base.1188858085.6752523" name="GNU ARM C Compiler" superClass="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base.1188858085">
+							<inputType id="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input.170934555" superClass="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="trashed_modified_files|i2c_controller_cmake|i2c_controller_iar_cmake" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="FatFS/ccsbcs.c|trashed_modified_files|i2c_controller_cmake|i2c_controller_iar_cmake" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
