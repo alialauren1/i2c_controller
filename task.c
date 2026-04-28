@@ -108,7 +108,7 @@ static bool keller_p_sensor_read(uint8_t *data, uint16_t len)
 }
 
 void keller_get_pressure_task(void *p_arg); // forward declaration
-void print_pressure_task(void *p_arg); // forward declaration
+void retrieve_pressure_task(void *p_arg); // forward declaration
 //-------------------------------------------------------------------------------------------------------------
 
 void keller_get_pressure_task_create(void) {
@@ -196,7 +196,7 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
               temp_sum += t_centi;
               avg_sample_counter++;
               if (avg_sample_counter==AVG_SAMPLE_COUNT){
-                  keller_buffer_write(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT);
+                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT);
                   pressure_sum=0;
                   temp_sum=0;
                   avg_sample_counter=0;
@@ -219,12 +219,12 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
 }
 
-void print_pressure_task_create(void) {
+void retrieve_pressure_task_create(void) {
   RTOS_ERR err;
 
   OSTaskCreate(&print_tcb,
                "Print",
-               print_pressure_task,
+               retrieve_pressure_task,
                NULL,
                PRINT_PRESSURE_TASK_PRIO,
                &print_stk[0],
@@ -237,13 +237,13 @@ void print_pressure_task_create(void) {
                &err);
 }
 
-void print_pressure_task(void *p_arg) {
+void retrieve_pressure_task(void *p_arg) {
   (void)p_arg;
 
   while (1) {
       // drain circular buffer and printf
       keller_sample_t sample;
-      if (keller_buffer_read(&sample)) {
+      if (keller_buffer_retrieve(&sample)) {
           printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
                  sample.p_mbar < 0 ? "-" : "",
                  (int)(abs(sample.p_mbar) / 1000),

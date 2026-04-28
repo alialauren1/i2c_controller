@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define KELLER_BUFFER_SIZE 16
+#define KELLER_BUFFER_SIZE 16 // number of samples it can store
 
 typedef struct {
     int32_t p_mbar;
@@ -19,8 +19,8 @@ typedef struct {
 } keller_sample_t;
 
 void keller_buffer_init(void);
-bool keller_buffer_write(int32_t p_mbar, int32_t t_centi);
-bool keller_buffer_read(keller_sample_t *sample);
+bool keller_buffer_store(int32_t p_mbar, int32_t t_centi);
+bool keller_buffer_retrieve(keller_sample_t *sample);
 bool keller_buffer_is_empty(void);
 
 #endif /* KELLER_PRESSURE_BUFFER_H_ */

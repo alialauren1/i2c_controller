@@ -8,7 +8,7 @@
 
 #include "Keller_Pressure_Buffer.h"
 
-static keller_sample_t buf[KELLER_BUFFER_SIZE];
+static keller_sample_t buffer[KELLER_BUFFER_SIZE];
 static int head  = 0;
 static int tail  = 0;
 static int count = 0;
@@ -19,22 +19,22 @@ void keller_buffer_init(void) {
     count = 0;
 }
 
-bool keller_buffer_write(int32_t p_mbar, int32_t t_centi) {
+bool keller_buffer_store(int32_t p_mbar, int32_t t_centi) {
     if (count >= KELLER_BUFFER_SIZE) {
         return false;
     }
-    buf[head].p_mbar  = p_mbar;
-    buf[head].t_centi = t_centi;
+    buffer[head].p_mbar  = p_mbar;
+    buffer[head].t_centi = t_centi;
     head = (head + 1) % KELLER_BUFFER_SIZE;
     count++;
     return true;
 }
 
-bool keller_buffer_read(keller_sample_t *sample) {
+bool keller_buffer_retrieve(keller_sample_t *sample) {
     if (count == 0) {
         return false;
     }
-    *sample = buf[tail];
+    *sample = buffer[tail];
     tail = (tail + 1) % KELLER_BUFFER_SIZE;
     count--;
     return true;
