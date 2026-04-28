@@ -179,7 +179,7 @@ void mod_sd_init_task()
   for( ;; )
   {
 //      vTaskDelete(NULL);
-      OSTaskDel(DEF_NULL,
+      OSTaskSuspend(&mod_sd_init_task_handle,
                 &err);
   }
 
