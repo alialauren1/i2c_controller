@@ -63,16 +63,6 @@
 // [I2C1]$
 
 // $[I2C2]
-// I2C2 SCL on PI5
-#define I2C2_SCL_PORT                            gpioPortI
-#define I2C2_SCL_PIN                             5
-#define I2C2_SCL_LOC                             7
-
-// I2C2 SDA on PI4
-#define I2C2_SDA_PORT                            gpioPortI
-#define I2C2_SDA_PIN                             4
-#define I2C2_SDA_LOC                             7
-
 // [I2C2]$
 
 // $[IDAC0]

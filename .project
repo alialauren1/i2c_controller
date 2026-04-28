@@ -366,11 +366,6 @@
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/include/logging.h</locationURI>
 		</link>
 		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/include/platform_mgr.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/include/platform_mgr.h</locationURI>
-		</link>
-		<link>
 			<name>gecko_sdk_4.1.4/platform/micrium_os/common/include/rtos_err.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/include/rtos_err.h</locationURI>
@@ -434,91 +429,6 @@
 			<name>gecko_sdk_4.1.4/platform/micrium_os/cpu/source/cpu_core.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/cpu/source/cpu_core.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/ecc.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/ecc.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_blk_dev.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_blk_dev.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_cache.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_cache.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_dir.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_dir.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_entry.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_entry.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_file.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_file.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_partition.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_partition.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_posix.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_posix.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_vol.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_vol.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_core_working_dir.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_core_working_dir.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_fat.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_fat.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_media.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_media.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_obj.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_obj.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_sd.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_sd.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_sd_card.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_sd_card.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/include/fs_storage.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/include/fs_storage.h</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.4/platform/micrium_os/kernel/include/os.h</name>
@@ -646,6 +556,11 @@
 			<locationURI>STUDIO_SDK_LOC/platform/service/device_init/inc/sl_device_init_hfxo.h</locationURI>
 		</link>
 		<link>
+			<name>gecko_sdk_4.1.4/platform/service/device_init/inc/sl_device_init_lfrco.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/device_init/inc/sl_device_init_lfrco.h</locationURI>
+		</link>
+		<link>
 			<name>gecko_sdk_4.1.4/platform/service/device_init/inc/sl_device_init_lfxo.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/service/device_init/inc/sl_device_init_lfxo.h</locationURI>
@@ -669,6 +584,11 @@
 			<name>gecko_sdk_4.1.4/platform/service/device_init/src/sl_device_init_hfxo_s1.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/service/device_init/src/sl_device_init_hfxo_s1.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.4/platform/service/device_init/src/sl_device_init_lfrco.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/device_init/src/sl_device_init_lfrco.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.4/platform/service/device_init/src/sl_device_init_lfxo_s1.c</name>
@@ -1111,36 +1031,6 @@
 			<locationURI>STUDIO_SDK_LOC/platform/Device/SiliconLabs/EFM32GG11B/Source/system_efm32gg11b.c</locationURI>
 		</link>
 		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/bitmap.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/bitmap.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/bitmap_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/bitmap_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/map.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/map.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/map_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/map_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/slist.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/slist.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/collections/slist_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/collections/slist_priv.h</locationURI>
-		</link>
-		<link>
 			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/common/common_priv.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/common/common_priv.h</locationURI>
@@ -1191,26 +1081,6 @@
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/logging/logging_priv.h</locationURI>
 		</link>
 		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/op_lock/op_lock.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/op_lock/op_lock.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/op_lock/op_lock_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/op_lock/op_lock_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/platform_mgr/platform_mgr.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/platform_mgr/platform_mgr.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/platform_mgr/platform_mgr_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/platform_mgr/platform_mgr_priv.h</locationURI>
-		</link>
-		<link>
 			<name>gecko_sdk_4.1.4/platform/micrium_os/common/source/preprocessor/preprocessor_priv.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/preprocessor/preprocessor_priv.h</locationURI>
@@ -1241,206 +1111,6 @@
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/common/source/rtos/rtos_utils_priv.h</locationURI>
 		</link>
 		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_buddy_alloc.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_buddy_alloc.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_buddy_alloc_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_buddy_alloc_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_cache.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_cache.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_cache_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_cache_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_dir.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_dir.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_dir_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_dir_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_entry.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_entry.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_entry_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_entry_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_file.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_file.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_file_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_file_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_job_sched.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_job_sched.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_job_sched_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_job_sched_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_list.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_list.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_list_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_list_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_op.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_op.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_op_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_op_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_partition.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_partition.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_partition_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_partition_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_posix.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_posix.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_posix_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_posix_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_unicode.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_unicode.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_unicode_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_unicode_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_vol.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_vol.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_vol_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_vol_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_working_dir.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_working_dir.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/core/fs_core_working_dir_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/core/fs_core_working_dir_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/fs_obj.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/fs_obj.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/fs_obj_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/fs_obj_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/fs_utils.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/fs_utils.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/fs_utils_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/fs_utils_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_blk_dev.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_blk_dev.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_blk_dev_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_blk_dev_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_media.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_media.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_media_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_media_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_storage.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_storage.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/fs_storage_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/fs_storage_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fs_sys.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fs_sys.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fs_sys_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fs_sys_priv.h</locationURI>
-		</link>
-		<link>
 			<name>gecko_sdk_4.1.4/platform/micrium_os/ports/source/generic/arm_cpu_dwt_ts.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/ports/source/generic/arm_cpu_dwt_ts.c</locationURI>
@@ -1469,146 +1139,6 @@
 			<name>gecko_sdk_4.1.4/platform/micrium_os/ports/source/gnu/armv7m_os_cpu_c.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/ports/source/gnu/armv7m_os_cpu_c.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/cleanup/cleanup_mgmt_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/cleanup/cleanup_mgmt_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/crc_utils.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/crc_utils.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/crc_utils.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/crc_utils.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/ecc_hamming.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/ecc_hamming.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/ecc_hamming.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/ecc_hamming.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/edc_crc.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/edc_crc.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/shared/crc/edc_crc.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/shared/crc/edc_crc.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/sd/fs_sd.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/sd/fs_sd.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/sd/fs_sd_card.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/sd/fs_sd_card.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/storage/sd/fs_sd_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/storage/sd/fs_sd_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_dir.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_dir.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_dir_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_dir_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_dirent_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_dirent_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_entry.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_entry.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_entry_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_entry_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_fatxx.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_fatxx.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_fatxx_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_fatxx_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_file.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_file.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_file_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_file_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_journal.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_journal.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_journal_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_journal_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_lfn.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_lfn.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_type_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_type_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_vol.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_vol.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_vol_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_vol_priv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.1.4/platform/micrium_os/fs/source/sys/fat/fs_fat_xfn_priv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/micrium_os/fs/source/sys/fat/fs_fat_xfn_priv.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
