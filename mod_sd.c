@@ -10,7 +10,7 @@
  *      Starting right after the line containing: printf("FAT fs mounted successfully.\r\n"); is where Alia is adding to
  *      Located in that place so that it occurs inside the if statement once we know FatFS is mounted.
  *
- *      The following changes were made in other files to support this
+ *      The following changes were made in other files
  *      // in config file, sl_sleeptimer_config.h, enabled: #define SL_SLEEPTIMER_WALLCLOCK_CONFIG  1
  */
 
@@ -183,14 +183,17 @@ void mod_sd_init_task()
       mod_sd_ff_encode("data.txt", file_name,8); // convert "data.txt" from char to TCHAR for FatFS
 
       FRESULT fres = f_open(&fp, file_name, FA_CREATE_ALWAYS | FA_WRITE); // create file, FA_CREATE_ALWAYS truncates if it already exists
-      // in config file, sl_sleeptimer_config.h, enabled: #define SL_SLEEPTIMER_WALLCLOCK_CONFIG  1
 
       if(fres==FR_OK){
           f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
           if(bw != 7){
               printf("Write error: only %d of 7 bytes written\r\n", bw); // checks that all bytes were written to the file
           }
+          else{
+              printf("File wrote all bytes\r\n");
+          }
           f_close(&fp); // flush and close
+          f_mount(NULL, (TCHAR*)"", 0);
           printf("File created. \r\n");
       }
       else {
