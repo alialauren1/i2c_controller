@@ -10,7 +10,8 @@
 
 #include "ff.h"
 
+void mod_sd_AW_commands_task_create(void);
 void mod_sd_AW_open(void);
-void mod_sd_AW_close(void);
+void mod_sd_AW_commands(void *p_arg);
 
 #endif /* MOD_SD_AW_H_ */
