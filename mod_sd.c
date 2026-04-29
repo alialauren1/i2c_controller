@@ -26,8 +26,6 @@
 //TaskHandle_t mod_sd_cmd_task_handle;
 OS_TCB mod_sd_init_task_handle;
 static CPU_STK mod_sd_init_task_stk[MOD_SD_INIT_STACK_SIZE];
-OS_TCB mod_sd_cmd_task_handle;
-static CPU_STK mod_sd_cmd_task_stk[MOD_SD_CMD_STACK_SIZE];
 //TaskHandle_t mod_sd_task_2_handle;
 //SemaphoreHandle_t sync_sem;
 OS_SEM sync_sem;

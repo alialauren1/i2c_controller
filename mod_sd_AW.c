@@ -22,33 +22,6 @@
 
 static FIL fp; // file object, accessible by all functions in this file. declares variable fp (file pointer) of type FIL (struct type)
 
-#define MOD_SD_AW_CMD_TASK_PRIO      21u
-#define MOD_SD_AW_CMD_TASK_STK_SIZE  256u
-static CPU_STK mod_sd_AW_cmd_stk[MOD_SD_AW_CMD_TASK_STK_SIZE];
-static OS_TCB  mod_sd_AW_cmd_tcb;
-
-void mod_sd_AW_commands(void *p_arg); // forward declaration
-
-void mod_sd_AW_commands_task_create(void){
-  RTOS_ERR err;
-
-  OSTaskCreate(&mod_sd_AW_cmd_tcb,
-               "SD Commands",
-               mod_sd_AW_commands,
-               DEF_NULL,
-               MOD_SD_AW_CMD_TASK_PRIO,
-               &mod_sd_AW_cmd_stk[0],
-               (MOD_SD_AW_CMD_TASK_STK_SIZE / 10u),
-               MOD_SD_AW_CMD_TASK_STK_SIZE,
-               0u,
-               0u,
-               DEF_NULL,
-               OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR,
-               &err);
-
-  EFM_ASSERT((RTOS_ERR_CODE_GET(err) == RTOS_ERR_NONE));
-}
-
 void mod_sd_AW_open(void){
   UINT bw; // bw (bytes written) so f_write fills this in after the write
         TCHAR file_name[16]; // array for the UTF-16 encoded file path
@@ -71,16 +44,4 @@ void mod_sd_AW_open(void){
         }
 }
 
-void mod_sd_AW_commands(void *p_arg){
-  (void)p_arg;
-
-  while(1){
-      //      f_close(&fp);
-      //      f_mount(NULL, (TCHAR*)"",0);
-      //      printf("SD card safe to remove. \r\n");
-
-      RTOS_ERR err;
-      OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err); // yield for 100ms
-  }
-}
 

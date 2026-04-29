@@ -9,7 +9,6 @@ void app_init(void){
   keller_get_pressure_task_create();
   retrieve_pressure_from_buffer_task_create();
   cli_app_init();
-  mod_sd_AW_commands_task_create();
 
 }
 

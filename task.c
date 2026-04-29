@@ -246,12 +246,12 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
       // drain circular buffer and printf
       keller_sample_t sample;
       if (keller_buffer_retrieve(&sample)) {
-          printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
-                 sample.p_mbar < 0 ? "-" : "",
-                 (int)(abs(sample.p_mbar) / 1000),
-                 (int)(abs(sample.p_mbar) % 1000),
-                 (int)(sample.t_centi / 100),
-                 (int)(sample.t_centi % 100));
+//          printf("P=%s%d.%03d bar, T=%d.%02d C\r\n",
+//                 sample.p_mbar < 0 ? "-" : "",
+//                 (int)(abs(sample.p_mbar) / 1000),
+//                 (int)(abs(sample.p_mbar) % 1000),
+//                 (int)(sample.t_centi / 100),
+//                 (int)(sample.t_centi % 100));
           }
 
       OSTimeDly(10, OS_OPT_TIME_DLY, &err);
