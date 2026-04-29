@@ -99,7 +99,7 @@ static const sl_cli_command_info_t cmd__sd_info = \
                  "",
                  { SL_CLI_ARG_END, });
 
-static const sl_cli_command_info_t cmd__sd_unmount = \
+static const sl_cli_command_info_t cmd__sd_close_unmount = \
   SL_CLI_COMMAND(sd_close_and_unmount_cmd,
                  "close and unmount the SD card",
                  "",
@@ -114,7 +114,7 @@ static sl_cli_command_entry_t a_table[] = {
   { "sd_write", &cmd__sd_write, false },
   { "sd_read", &cmd__sd_read, false },
   { "sd_info", &cmd__sd_info, false },
-  { "sd_unmount", &cmd__sd_unmount, false },
+  { "sd_close_unmount", &cmd__sd_close_unmount, false },
   { NULL, NULL, false },
 };
 

@@ -43,6 +43,6 @@ void mod_sd_create_init_task();
 
 void mod_sd_close_and_unmount_AW(void);
 
-
+void mod_sd_write_AW(char *buf, int len);
 
 #endif /* MOD_SD_H_ */
