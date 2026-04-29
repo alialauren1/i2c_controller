@@ -262,7 +262,7 @@ static void mod_sd_open_AW(void){
   }
 }
 
-void mod_sd_close_AW(void){
+void mod_sd_close_and_unmount_AW(void){
   f_close(&fp);
   f_mount(NULL, (TCHAR*)"", 0);
   printf("SD card safe to remove.\r\n");

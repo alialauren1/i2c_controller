@@ -45,7 +45,7 @@ void sd_write_cmd(sl_cli_command_arg_t *arguments);
 void sd_read_cmd(sl_cli_command_arg_t *arguments);
 void sd_info_cmd(sl_cli_command_arg_t *arguments);
 
-void sd_unmount_cmd(sl_cli_command_arg_t *arguments);
+void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments);
 
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
@@ -100,7 +100,7 @@ static const sl_cli_command_info_t cmd__sd_info = \
                  { SL_CLI_ARG_END, });
 
 static const sl_cli_command_info_t cmd__sd_unmount = \
-  SL_CLI_COMMAND(sd_unmount_cmd,
+  SL_CLI_COMMAND(sd_close_and_unmount_cmd,
                  "close and unmount the SD card",
                  "",
                  { SL_CLI_ARG_END, });
@@ -389,9 +389,14 @@ void sd_info_cmd(sl_cli_command_arg_t *arguments)
   printf("bc_used: %u.%u %cB\r\n", bc_used.val, bc_used.dec, bc_used.pfx);
 }
 
-void sd_unmount_cmd(sl_cli_command_arg_t *arguments)
+/****************************************************************************//**
+ * Callback for sd_unmount_cmd
+ *
+ * The command is used to unmount and close the SD card.
+ ******************************************************************************/
+void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments)
 {
-  mod_sd_close_AW();
+  mod_sd_close_and_unmount_AW();
 }
 
 

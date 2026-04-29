@@ -41,7 +41,7 @@ void mod_sd_task();
 
 void mod_sd_create_init_task();
 
-void mod_sd_close_AW(void);
+void mod_sd_close_and_unmount_AW(void);
 
 
 

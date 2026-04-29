@@ -251,7 +251,7 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
                  (int)(abs(sample.p_mbar) / 1000),
                  (int)(abs(sample.p_mbar) % 1000),
                  (int)((sample.t_centi * 9 / 5 + 3200) / 100),
-                 (int)((sample.t_centi * 9 / 5 + 3200) % 100)); // -> t_centi (hundredths of C) to F
+                 (int)((sample.t_centi * 9 / 5 + 3200) % 100)); //-> t_centi (hundredths of C) to F
                  //(int)(sample.t_centi / 100),
                  //(int)(sample.t_centi % 100));
           }
