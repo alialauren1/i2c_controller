@@ -12,8 +12,9 @@
  *   static void mod_sd_open_AW(void);
  *   mod_sd_open_AW(); // inside the function mod_sd_init_task()
  *
- *   Created the sub Functions:
+ *   Created the Functions:
  *   mod_sd_open_AW(void)
+ *   mod_sd_close_AW(void)
  *
  *
  *
@@ -259,5 +260,11 @@ static void mod_sd_open_AW(void){
   else {
       printf("File open has failed: %d\r\n",fres);
   }
+}
+
+void mod_sd_close_AW(void){
+  f_close(&fp);
+  f_mount(NULL, (TCHAR*)"", 0);
+  printf("SD card safe to remove.\r\n");
 }
 

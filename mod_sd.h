@@ -41,6 +41,8 @@ void mod_sd_task();
 
 void mod_sd_create_init_task();
 
+void mod_sd_close_AW(void);
+
 
 
 #endif /* MOD_SD_H_ */

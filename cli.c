@@ -45,6 +45,8 @@ void sd_write_cmd(sl_cli_command_arg_t *arguments);
 void sd_read_cmd(sl_cli_command_arg_t *arguments);
 void sd_info_cmd(sl_cli_command_arg_t *arguments);
 
+void sd_unmount_cmd(sl_cli_command_arg_t *arguments);
+
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
  ******************************************************************************/
@@ -97,6 +99,12 @@ static const sl_cli_command_info_t cmd__sd_info = \
                  "",
                  { SL_CLI_ARG_END, });
 
+static const sl_cli_command_info_t cmd__sd_unmount = \
+  SL_CLI_COMMAND(sd_unmount_cmd,
+                 "close and unmount the SD card",
+                 "",
+                 { SL_CLI_ARG_END, });
+
 static sl_cli_command_entry_t a_table[] = {
   { "echo_str", &cmd__echostr, false },
   { "echo_int", &cmd__echoint, false },
@@ -106,6 +114,7 @@ static sl_cli_command_entry_t a_table[] = {
   { "sd_write", &cmd__sd_write, false },
   { "sd_read", &cmd__sd_read, false },
   { "sd_info", &cmd__sd_info, false },
+  { "sd_unmount", &cmd__sd_unmount, false },
   { NULL, NULL, false },
 };
 
@@ -116,7 +125,6 @@ static sl_cli_command_group_t a_group = {
 };
 
 static bool confirm = false;
-
 
 /*******************************************************************************
  *************************  EXPORTED VARIABLES   *******************************
@@ -379,6 +387,11 @@ void sd_info_cmd(sl_cli_command_arg_t *arguments)
   printf("bc_size: %u.%u %cB\r\n", bc_size.val, bc_size.dec, bc_size.pfx);
   printf("bc_free: %u.%u %cB\r\n", bc_free.val, bc_free.dec, bc_free.pfx);
   printf("bc_used: %u.%u %cB\r\n", bc_used.val, bc_used.dec, bc_used.pfx);
+}
+
+void sd_unmount_cmd(sl_cli_command_arg_t *arguments)
+{
+  mod_sd_close_AW();
 }
 
 
