@@ -46,7 +46,7 @@
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
 #define P_OFFSET_MBAR 0 // calibration offset
-#define AVG_SAMPLE_COUNT 100 // amount of samples that we use to average before printing
+#define AVG_SAMPLE_COUNT 10 // amount of samples that we use to average before printing
 
 //For Keller_get_pressure_task_create
 #define KELLER_GET_PRESSURE_TASK_PRIO      11u
@@ -199,7 +199,7 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
               temp_sum += t_centi;
               avg_sample_counter++;
               if (avg_sample_counter==AVG_SAMPLE_COUNT){
-                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT);
+                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT); // store in buffer for real time use
                   pressure_sum=0;
                   temp_sum=0;
                   avg_sample_counter=0;
@@ -249,14 +249,16 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
       // drain circular buffer and printf
       keller_sample_t sample;
       if (keller_buffer_retrieve(&sample)) {
-          printf("P=%s%d.%03d bar, T=%d.%02d F\r\n",
-                 sample.p_mbar < 0 ? "-" : "",
-                 (int)(abs(sample.p_mbar) / 1000),
-                 (int)(abs(sample.p_mbar) % 1000),
-                 (int)((sample.t_centi * 9 / 5 + 3200) / 100),
-                 (int)((sample.t_centi * 9 / 5 + 3200) % 100)); //-> t_centi (hundredths of C) to F
-                 //(int)(sample.t_centi / 100),
-                 //(int)(sample.t_centi % 100));
+          char data_array_for_sd_card[64];
+          int len = snprintf(data_array_for_sd_card,sizeof(data_array_for_sd_card),"P=%s%d.%03d bar, T=%d.%02d F\r\n",
+                             sample.p_mbar<0 ? "-":"",
+                                 (int)(abs(sample.p_mbar) / 1000),
+                                                  (int)(abs(sample.p_mbar) % 1000),
+                                                  (int)((sample.t_centi * 9 / 5 + 3200) / 100),
+                                                  (int)((sample.t_centi * 9 / 5 + 3200) % 100)); //-> t_centi (hundredths of C) to F
+                                                  //(int)(sample.t_centi / 100),  // Celcius
+                                                  //(int)(sample.t_centi % 100)); // Celcius
+          printf("%s",data_array_for_sd_card);
           }
 
       OSTimeDly(10, OS_OPT_TIME_DLY, &err);

@@ -268,3 +268,8 @@ void mod_sd_close_and_unmount_AW(void){
   printf("SD card safe to remove.\r\n");
 }
 
+void mod_sd_write_AW(char *buf, int len){
+  UINT bw;
+  f_write(&fp, buf, len, &bw);
+}
+
