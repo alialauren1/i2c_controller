@@ -133,6 +133,9 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 {
   (void)p_arg;
 
+  RTOS_ERR delay_err;
+  OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &delay_err); // delay so there's time for SD card to startup
+
   // Initialize application
   bool keller_p_sensor_ok = keller_p_sensor_init(); // checks to see if sensor responds to address being called
 
