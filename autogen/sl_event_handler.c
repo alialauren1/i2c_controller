@@ -14,6 +14,7 @@
 #include "sl_i2cspm_instances.h"
 #include "sl_iostream_init_usart_instances.h"
 #include "SEGGER_SYSVIEW.h"
+#include "sl_cli_instances.h"
 #include "cpu.h"
 #include "cmsis_os2.h"
 #include "sl_iostream_init_instances.h"
@@ -50,6 +51,7 @@ void sl_service_init(void)
   sl_board_configure_vcom();
   sl_sleeptimer_init();
   sl_iostream_init_instances();
+  sl_cli_instances_init();
 }
 
 void sl_stack_init(void)

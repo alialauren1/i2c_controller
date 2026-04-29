@@ -46,7 +46,7 @@
 #define STATUS_BUSY_BIT     (1 << 5)  // 1 = sensor still converting
 #define STATUS_MEM_ERR_BIT  (1 << 2)  // 1 = internal checksum failed
 #define P_OFFSET_MBAR 0 // calibration offset
-#define AVG_SAMPLE_COUNT 10 // amount of samples that we use to average before printing
+#define AVG_SAMPLE_COUNT 100 // amount of samples that we use to average before printing
 
 //For Keller_get_pressure_task_create
 #define KELLER_GET_PRESSURE_TASK_PRIO      11u
@@ -240,6 +240,8 @@ void retrieve_pressure_task_create(void) {
 void retrieve_pressure_task(void *p_arg) {
   (void)p_arg;
 
+  RTOS_ERR err;
+
   while (1) {
       // drain circular buffer and printf
       keller_sample_t sample;
@@ -249,6 +251,9 @@ void retrieve_pressure_task(void *p_arg) {
                  (int)(abs(sample.p_mbar) / 1000),
                  (int)(abs(sample.p_mbar) % 1000),
                  (int)(sample.t_centi / 100),
-                 (int)(sample.t_centi % 100));}
+                 (int)(sample.t_centi % 100));
+          }
+
+      OSTimeDly(10, OS_OPT_TIME_DLY, &err);
   }
 }
