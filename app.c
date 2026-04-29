@@ -1,6 +1,5 @@
 #include "task.h"
 #include "mod_sd.h" // mod sd driver
-#include "mod_sd_AW.h"
 #include "cli.h"
 
 void app_init(void){

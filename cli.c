@@ -168,7 +168,7 @@ void echo_int(sl_cli_command_arg_t *arguments)
   }
 }
 
-
+/***************************************************************************/
 
 void sd_format_confirm(char *arg_str, void *user)
 {
@@ -183,13 +183,9 @@ void sd_format_confirm(char *arg_str, void *user)
     printf("Ok nevermind then\r\n");
   }
 
-
   sl_cli_redirect_command(sl_cli_default_handle, NULL, NULL, NULL);
 
-
 }
-
-
 
 /***************************************************************************//**
  * Callback for sd_format

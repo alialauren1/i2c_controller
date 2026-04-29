@@ -4,6 +4,13 @@
  *  Created on: Dec 2, 2025
  *      Author: lwelsh
  *
+ *
+ *   TODO: Keep track of what I (AW) add to this:
+ *   static FIL fp;
+ *   if(res == (FRESULT)RES_OK) -> lines after this in the loop
+ *
+ *
+ *
  */
 
 //#include "FreeRTOS.h"
@@ -20,7 +27,6 @@
 #include "app.h"
 #include "mod_sd.h"
 //#include <stdalign.h>
-#include "mod_sd_AW.h"
 
 //TaskHandle_t mod_sd_init_task_handle;
 //TaskHandle_t mod_sd_cmd_task_handle;
@@ -32,6 +38,9 @@ OS_SEM sync_sem;
 
 
 static volatile FATFS fat_fs;
+
+static FIL fp;  // AW added
+static void mod_sd_open_AW(void); // AW added, is a forward declaration
 
 static RTOS_ERR err;
 //static FIL fp;
@@ -167,7 +176,7 @@ void mod_sd_init_task()
   if(res == (FRESULT)RES_OK)
   {
       printf("FAT fs mounted successfully.\r\n");
-      mod_sd_AW_open();
+      mod_sd_open_AW();
   }
   else
   {
@@ -221,5 +230,28 @@ void mod_sd_create_init_task()
   EFM_ASSERT((RTOS_ERR_CODE_GET(err) == RTOS_ERR_NONE));
 
 
+}
+
+// AW added the following task:
+static void mod_sd_open_AW(void){
+  UINT bw;                                   // bw (bytes written) so f_write fills this in after the write
+  TCHAR file_name[16];                       // array for the UTF-16 encoded file path
+  mod_sd_ff_encode("data.txt", file_name,8); // convert "data.txt" from char to TCHAR for FatFS
+
+  FRESULT fres = f_open(&fp, file_name, FA_CREATE_ALWAYS | FA_WRITE); // create file, FA_CREATE_ALWAYS truncates if it already exists
+
+  if(fres==FR_OK){
+      f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
+      if(bw != 7){
+          printf("Write error: only %d of 7 bytes written\r\n", bw); // checks that all bytes were written to the file
+      }
+      else{
+          printf("File wrote all bytes\r\n");
+      }
+      printf("File created. \r\n");
+  }
+  else {
+      printf("File open has failed: %d\r\n",fres);
+  }
 }
 
