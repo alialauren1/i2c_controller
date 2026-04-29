@@ -6,8 +6,14 @@
  *
  *
  *   TODO: Keep track of what I (AW) add to this:
+ *
+ *   Single Lines:
  *   static FIL fp;
- *   if(res == (FRESULT)RES_OK) -> lines after this in the loop
+ *   static void mod_sd_open_AW(void);
+ *   mod_sd_open_AW(); // inside the function mod_sd_init_task()
+ *
+ *   Created the sub Functions:
+ *   mod_sd_open_AW(void)
  *
  *
  *
