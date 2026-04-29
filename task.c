@@ -108,7 +108,7 @@ static bool keller_p_sensor_read(uint8_t *data, uint16_t len)
 }
 
 void keller_get_pressure_task(void *p_arg); // forward declaration
-void retrieve_pressure_task(void *p_arg); // forward declaration
+void retrieve_pressure_from_buffer_task(void *p_arg); // forward declaration
 //-------------------------------------------------------------------------------------------------------------
 
 void keller_get_pressure_task_create(void) {
@@ -219,12 +219,12 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
 
 }
 
-void retrieve_pressure_task_create(void) {
+void retrieve_pressure_from_buffer_task_create(void) {
   RTOS_ERR err;
 
   OSTaskCreate(&print_tcb,
                "Print",
-               retrieve_pressure_task,
+               retrieve_pressure_from_buffer_task,
                NULL,
                PRINT_PRESSURE_TASK_PRIO,
                &print_stk[0],
@@ -237,7 +237,7 @@ void retrieve_pressure_task_create(void) {
                &err);
 }
 
-void retrieve_pressure_task(void *p_arg) {
+void retrieve_pressure_from_buffer_task(void *p_arg) {
   (void)p_arg;
 
   RTOS_ERR err;
