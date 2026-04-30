@@ -286,6 +286,7 @@ void mod_sd_write_AW(char *buf, int len){
   OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);  // acquire lock before touching fp
   if(sd_file_open){
       f_write(&fp, buf, len, &bw);                          // only write to sd if fp is valid
+      f_sync(&fp);                                          // flush to SD card to protect against power loss before unmount
   }
   OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);             // release lock regardless
 }
