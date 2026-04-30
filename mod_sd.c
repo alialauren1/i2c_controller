@@ -13,6 +13,7 @@
  *   static void mod_sd_open_AW(void);
  *   mod_sd_open_AW(); // inside the function mod_sd_init_task()
  *
+ *   // the mutex code inside mod_sd_create_init_task()
  *
  *   Created the Functions:
  *   mod_sd_open_AW(void)
@@ -48,6 +49,8 @@ OS_SEM sync_sem;
 static volatile FATFS fat_fs;
 
 static FIL fp;  // AW added
+static OS_MUTEX sd_mutex;         // AW, protecting fp so write and close cant overlap
+static volatile uint8_t sd_file_open = 0; // AW, 0 for when not safe to write, 1 for when is safe to write
 static void mod_sd_open_AW(void); // AW added, is a forward declaration
 
 static RTOS_ERR err;
@@ -221,6 +224,9 @@ void mod_sd_create_init_task()
 
   RTOS_ERR err;
 
+  OSMutexCreate(&sd_mutex,"SD Mutex", &err);            // create mutex before any task can call to write or close
+  EFM_ASSERT((RTOS_ERR_CODE_GET(err)==RTOS_ERR_NONE));  // if the mutex creation fails, halt in debug
+
   OSTaskCreate(&mod_sd_init_task_handle,
                "mod_sd_init",
                mod_sd_init_task,
@@ -249,6 +255,7 @@ static void mod_sd_open_AW(void){
   FRESULT fres = f_open(&fp, file_name, FA_CREATE_ALWAYS | FA_WRITE); // create file, FA_CREATE_ALWAYS truncates if it already exists
 
   if(fres==FR_OK){
+      sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
       f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
       if(bw != 7){
           printf("Write error: only %d of 7 bytes written\r\n", bw); // checks that all bytes were written to the file
@@ -264,13 +271,22 @@ static void mod_sd_open_AW(void){
 }
 
 void mod_sd_close_and_unmount_AW(void){
+  RTOS_ERR err;
+  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
+  sd_file_open = 0;                                        // clear flag now that mutex is acquired
   f_close(&fp);
-  f_mount(NULL, (TCHAR*)"", 0);
+  f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
+  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
   printf("SD card safe to remove.\r\n");
 }
 
 void mod_sd_write_AW(char *buf, int len){
+  RTOS_ERR err;
   UINT bw;
-  f_write(&fp, buf, len, &bw);
+  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);  // acquire lock before touching fp
+  if(sd_file_open){
+      f_write(&fp, buf, len, &bw);                          // only write to sd if fp is valid
+  }
+  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);             // release lock regardless
 }
 
