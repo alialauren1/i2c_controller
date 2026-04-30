@@ -45,10 +45,10 @@ void echo_str(sl_cli_command_arg_t *arguments);
 void echo_int(sl_cli_command_arg_t *arguments);
 //void sd_format_cmd(sl_cli_command_arg_t *arguments);
 //void sd_ls_cmd(sl_cli_command_arg_t *arguments);
-void sd_rm_cmd(sl_cli_command_arg_t *arguments);
-void sd_write_cmd(sl_cli_command_arg_t *arguments);
+//void sd_rm_cmd(sl_cli_command_arg_t *arguments);
+//void sd_write_cmd(sl_cli_command_arg_t *arguments);
 //void sd_read_cmd(sl_cli_command_arg_t *arguments);
-void sd_info_cmd(sl_cli_command_arg_t *arguments);
+//void sd_info_cmd(sl_cli_command_arg_t *arguments);
 
 void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments);
 
@@ -80,17 +80,17 @@ static const sl_cli_command_info_t cmd__echoint = \
 //                 "",
 //                 { SL_CLI_ARG_END, });
 
-static const sl_cli_command_info_t cmd__sd_rm = \
-  SL_CLI_COMMAND(sd_rm_cmd,
-                 "delete a file from the SD card",
-                 "filename",
-                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
-
-static const sl_cli_command_info_t cmd__sd_write = \
-  SL_CLI_COMMAND(sd_write_cmd,
-                 "store a string in a new file on the SD card",
-                 "filename"SL_CLI_UNIT_SEPARATOR "string to store",
-                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
+//static const sl_cli_command_info_t cmd__sd_rm = \
+//  SL_CLI_COMMAND(sd_rm_cmd,
+//                 "delete a file from the SD card",
+//                 "filename",
+//                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
+//
+//static const sl_cli_command_info_t cmd__sd_write = \
+//  SL_CLI_COMMAND(sd_write_cmd,
+//                 "store a string in a new file on the SD card",
+//                 "filename"SL_CLI_UNIT_SEPARATOR "string to store",
+//                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
 
 //static const sl_cli_command_info_t cmd__sd_read = \
 //  SL_CLI_COMMAND(sd_read_cmd,
@@ -98,11 +98,11 @@ static const sl_cli_command_info_t cmd__sd_write = \
 //                 "filename",
 //                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
 
-static const sl_cli_command_info_t cmd__sd_info = \
-  SL_CLI_COMMAND(sd_info_cmd,
-                 "get info about the SD card",
-                 "",
-                 { SL_CLI_ARG_END, });
+//static const sl_cli_command_info_t cmd__sd_info = \
+//  SL_CLI_COMMAND(sd_info_cmd,
+//                 "get info about the SD card",
+//                 "",
+//                 { SL_CLI_ARG_END, });
 
 static const sl_cli_command_info_t cmd__sd_close_unmount = \
   SL_CLI_COMMAND(sd_close_and_unmount_cmd,
@@ -115,10 +115,10 @@ static sl_cli_command_entry_t a_table[] = {
   { "echo_int", &cmd__echoint, false },
 //  { "sd_format", &cmd__sd_format, false },
 //  { "sd_ls", &cmd__sd_ls, false },
-  { "sd_rm", &cmd__sd_rm, false },
-  { "sd_write", &cmd__sd_write, false },
+//  { "sd_rm", &cmd__sd_rm, false },
+//  { "sd_write", &cmd__sd_write, false },
 //  { "sd_read", &cmd__sd_read, false },
-  { "sd_info", &cmd__sd_info, false },
+//  { "sd_info", &cmd__sd_info, false },
   { "sd_close_unmount", &cmd__sd_close_unmount, false },
   { NULL, NULL, false },
 };
@@ -256,20 +256,20 @@ void echo_int(sl_cli_command_arg_t *arguments)
  *
  * The command is used to delete a file from the SD card.
  ******************************************************************************/
-void sd_rm_cmd(sl_cli_command_arg_t *arguments)
-{
-  printf("Still need to implement!\r\n");
-}
+//void sd_rm_cmd(sl_cli_command_arg_t *arguments)
+//{
+//  printf("Still need to implement!\r\n");
+//}
 
 /***************************************************************************//**
  * Callback for sd_write
  *
  * The command is used to write a file to the SD card.
  ******************************************************************************/
-void sd_write_cmd(sl_cli_command_arg_t *arguments)
-{
-  printf("Still need to implement!\r\n");
-}
+//void sd_write_cmd(sl_cli_command_arg_t *arguments)
+//{
+//  printf("Still need to implement!\r\n");
+//}
 
 /***************************************************************************//**
  * Callback for sd_read
@@ -320,79 +320,79 @@ void sd_write_cmd(sl_cli_command_arg_t *arguments)
  *
  * The command is used to get info about the SD card.
  ******************************************************************************/
-void sd_info_cmd(sl_cli_command_arg_t *arguments)
-{
-  printf("Still need to implement!\r\n");
-
-  /* Info to get:
-   * - Card mfr info (mfr name, etc)
-   *  * For this we will need to read the CID and compare against a list of mfrs
-   * - Filesystem format (FAT32/EXFAT)
-   * - Filesystem size
-   * - Filesystem free space amt
-   * - Number of files on filesystem
-   */
-
-  char fs_type[6];
-  uint32_t fs_size;
-  uint32_t fs_free;
-  uint32_t fs_used;
-  float fs_uspc;
-  float fs_uspc_dec;
-
-
-  FATFS* fs_ptr = mod_sd_get_fs();
-
-
-  // Determine filesystem type
-  switch(fs_ptr->fs_type){
-    case FS_FAT12:
-      strcpy(fs_type, "FAT12");
-      break;
-    case FS_FAT16:
-      strcpy(fs_type, "FAT16");
-      break;
-    case FS_FAT32:
-      strcpy(fs_type, "FAT32");
-      break;
-    case FS_EXFAT:
-      strcpy(fs_type, "EXFAT");
-      break;
-    default:
-      strcpy(fs_type, "ERROR");
-      break;
-  }
-
-
-  // Determine size info
-  // ">> 1" is equivalent to "multiply by 512 to get bytes, then divide by 1024 to get kilobytes"
-  fs_size = (fs_ptr->n_fatent  * fs_ptr->csize) >> 1;
-  fs_free = (fs_ptr->free_clst * fs_ptr->csize) >> 1;
-  fs_used = fs_size - fs_free;
-  fs_uspc = (float) (fs_used * 100) / fs_size;
-  fs_uspc_dec = (float)(fs_uspc - ((uint8_t)fs_uspc))*100;
-
-  printf("fs_type: %s\r\n", fs_type);
-  printf("fs_size: %lu kB\r\n", fs_size);
-  printf("fs_free: %lu kB\r\n", fs_free);
-  printf("fs_used: %lu kB\r\n", fs_used);
-  printf("test%%: %lu\r\n", (uint32_t)fs_uspc);
-  printf("used%%: %u.%u%%\r\n", (uint8_t)fs_uspc, (uint8_t)fs_uspc_dec);
-
-
-  mod_sd_bytecount_t bc_size;
-  mod_sd_bytecount_t bc_free;
-  mod_sd_bytecount_t bc_used;
-
-  mod_sd_get_bytecount(fs_size, &bc_size);
-  mod_sd_get_bytecount(fs_free, &bc_free);
-  mod_sd_get_bytecount(fs_used, &bc_used);
-
-  printf("\r\n");
-  printf("bc_size: %u.%u %cB\r\n", bc_size.val, bc_size.dec, bc_size.pfx);
-  printf("bc_free: %u.%u %cB\r\n", bc_free.val, bc_free.dec, bc_free.pfx);
-  printf("bc_used: %u.%u %cB\r\n", bc_used.val, bc_used.dec, bc_used.pfx);
-}
+//void sd_info_cmd(sl_cli_command_arg_t *arguments)
+//{
+//  printf("Still need to implement!\r\n");
+//
+//  /* Info to get:
+//   * - Card mfr info (mfr name, etc)
+//   *  * For this we will need to read the CID and compare against a list of mfrs
+//   * - Filesystem format (FAT32/EXFAT)
+//   * - Filesystem size
+//   * - Filesystem free space amt
+//   * - Number of files on filesystem
+//   */
+//
+//  char fs_type[6];
+//  uint32_t fs_size;
+//  uint32_t fs_free;
+//  uint32_t fs_used;
+//  float fs_uspc;
+//  float fs_uspc_dec;
+//
+//
+//  FATFS* fs_ptr = mod_sd_get_fs();
+//
+//
+//  // Determine filesystem type
+//  switch(fs_ptr->fs_type){
+//    case FS_FAT12:
+//      strcpy(fs_type, "FAT12");
+//      break;
+//    case FS_FAT16:
+//      strcpy(fs_type, "FAT16");
+//      break;
+//    case FS_FAT32:
+//      strcpy(fs_type, "FAT32");
+//      break;
+//    case FS_EXFAT:
+//      strcpy(fs_type, "EXFAT");
+//      break;
+//    default:
+//      strcpy(fs_type, "ERROR");
+//      break;
+//  }
+//
+//
+//  // Determine size info
+//  // ">> 1" is equivalent to "multiply by 512 to get bytes, then divide by 1024 to get kilobytes"
+//  fs_size = (fs_ptr->n_fatent  * fs_ptr->csize) >> 1;
+//  fs_free = (fs_ptr->free_clst * fs_ptr->csize) >> 1;
+//  fs_used = fs_size - fs_free;
+//  fs_uspc = (float) (fs_used * 100) / fs_size;
+//  fs_uspc_dec = (float)(fs_uspc - ((uint8_t)fs_uspc))*100;
+//
+//  printf("fs_type: %s\r\n", fs_type);
+//  printf("fs_size: %lu kB\r\n", fs_size);
+//  printf("fs_free: %lu kB\r\n", fs_free);
+//  printf("fs_used: %lu kB\r\n", fs_used);
+//  printf("test%%: %lu\r\n", (uint32_t)fs_uspc);
+//  printf("used%%: %u.%u%%\r\n", (uint8_t)fs_uspc, (uint8_t)fs_uspc_dec);
+//
+//
+//  mod_sd_bytecount_t bc_size;
+//  mod_sd_bytecount_t bc_free;
+//  mod_sd_bytecount_t bc_used;
+//
+//  mod_sd_get_bytecount(fs_size, &bc_size);
+//  mod_sd_get_bytecount(fs_free, &bc_free);
+//  mod_sd_get_bytecount(fs_used, &bc_used);
+//
+//  printf("\r\n");
+//  printf("bc_size: %u.%u %cB\r\n", bc_size.val, bc_size.dec, bc_size.pfx);
+//  printf("bc_free: %u.%u %cB\r\n", bc_free.val, bc_free.dec, bc_free.pfx);
+//  printf("bc_used: %u.%u %cB\r\n", bc_used.val, bc_used.dec, bc_used.pfx);
+//}
 
 /****************************************************************************//**
  * Callback for sd_unmount_cmd
