@@ -294,8 +294,8 @@ void mod_sd_write_AW(char *buf, int len){
 
   if(sd_file_open){
       FRESULT fres = f_write(&fp, buf, len, &bw); // only write to sd if fp is valid
-      f_sync(&fp);                                // flush to SD card to protect against power loss before unmount
-      if(fres != FR_OK){
+      FRESULT fsync_res = f_sync(&fp);            // flush to SD card to protect against power loss before unmount
+      if(fres != FR_OK || fsync_res != FR_OK){
           if(sd_write_ok){
               sd_write_ok = 0;
               GPIO_PinOutSet(gpioPortH, 11);    // turn LED off, only on transition from ok to failed
