@@ -134,14 +134,23 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
   (void)p_arg;
 
   RTOS_ERR delay_err;
-  OSTimeDlyHMSM(0, 0, 0, 1000, OS_OPT_TIME_HMSM_STRICT, &delay_err); // delay so there's time for SD card to startup
+  OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &delay_err); // delay so there's time for SD card to startup
 
-  // Initialize application
-  bool keller_p_sensor_ok = keller_p_sensor_init(); // checks to see if sensor responds to address being called
+//  // Initialize application
+//  bool keller_p_sensor_ok = keller_p_sensor_init(); // checks to see if sensor responds to address being called
+//
+//  if (!keller_p_sensor_ok) { // returns if sensor not ACKed
+//      printf("ERROR: No I2C ACK\r\n");
+//      return;}
 
-  if (!keller_p_sensor_ok) { // returns if sensor not ACKed
-      printf("ERROR: No I2C ACK\r\n");
-      return;}
+  bool keller_p_sensor_ok = false;
+  while(!keller_p_sensor_ok){
+      keller_p_sensor_ok = keller_p_sensor_init();
+      if(!keller_p_sensor_ok){
+          printf("ERROR: No I2C ACK, retrying...\r\n");
+          OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &delay_err);
+      }
+  }
 
   printf("Sensor found at 0x%02X\r\n", SENSOR_I2C_ADDR);
 
