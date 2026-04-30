@@ -47,7 +47,7 @@ void echo_int(sl_cli_command_arg_t *arguments);
 //void sd_ls_cmd(sl_cli_command_arg_t *arguments);
 //void sd_rm_cmd(sl_cli_command_arg_t *arguments);
 //void sd_write_cmd(sl_cli_command_arg_t *arguments);
-//void sd_read_cmd(sl_cli_command_arg_t *arguments);
+void sd_read_cmd(sl_cli_command_arg_t *arguments);
 //void sd_info_cmd(sl_cli_command_arg_t *arguments);
 
 void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments);
@@ -92,11 +92,11 @@ static const sl_cli_command_info_t cmd__echoint = \
 //                 "filename"SL_CLI_UNIT_SEPARATOR "string to store",
 //                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
 
-//static const sl_cli_command_info_t cmd__sd_read = \
-//  SL_CLI_COMMAND(sd_read_cmd,
-//                 "print the contents of a file on the SD card",
-//                 "filename",
-//                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
+static const sl_cli_command_info_t cmd__sd_read = \
+  SL_CLI_COMMAND(sd_read_cmd,
+                 "print the contents of a file on the SD card",
+                 "filename",
+                 { SL_CLI_ARG_WILDCARD, SL_CLI_ARG_END, });
 
 //static const sl_cli_command_info_t cmd__sd_info = \
 //  SL_CLI_COMMAND(sd_info_cmd,
@@ -117,7 +117,7 @@ static sl_cli_command_entry_t a_table[] = {
 //  { "sd_ls", &cmd__sd_ls, false },
 //  { "sd_rm", &cmd__sd_rm, false },
 //  { "sd_write", &cmd__sd_write, false },
-//  { "sd_read", &cmd__sd_read, false },
+  { "sd_read", &cmd__sd_read, false },
 //  { "sd_info", &cmd__sd_info, false },
   { "sd_close_unmount", &cmd__sd_close_unmount, false },
   { NULL, NULL, false },
@@ -276,44 +276,44 @@ void echo_int(sl_cli_command_arg_t *arguments)
  *
  * The command is used to read a file on the SD card.
  ******************************************************************************/
-//void sd_read_cmd(sl_cli_command_arg_t *arguments)
-//{
-//  char buf[512];
-//  TCHAR fnbuf[255];
-//  char *fname;
-//  FRESULT res;
-//  FIL file;
-//  uint16_t rcnt = 0;
-//
-//  // Get the filename given by the user
-//  if (sl_cli_get_argument_count(arguments) < 1) {
-//    // TODO: Find a way to make the command name and arg name printing modular, not hardcoded
-//    printf("usage: sd_read [filename]\r\n");
-//    return;
-//  }
-//  fname = sl_cli_get_argument_string(arguments, 0);
-//  mod_sd_ff_encode(fname, fnbuf, strlen(fname));
-//
-//  // Attempt to open a file with the given filename
-//  res = f_open(&file, fnbuf, FA_READ);
-//  if (res) {
-//    printf("File not found: \"%s\"\r\n", fname);
-//  }
-//
-//  // Read the file in chunks, and print each chunk
-//  // TODO: Split up into read task and print task for more efficient operation
-//  for(;;)
-//  {
-//    res = f_read(&file, buf, sizeof buf, &rcnt);
-//    fwrite(buf, sizeof(char), rcnt, stdout);
-//    if(rcnt < sizeof buf) break;
-//  }
-//
-//  // Close the file
-//  f_close(&file);
-//
-//
-//}
+void sd_read_cmd(sl_cli_command_arg_t *arguments)
+{
+  char buf[512];
+  TCHAR fnbuf[255];
+  char *fname;
+  FRESULT res;
+  FIL file;
+  uint16_t rcnt = 0;
+
+  // Get the filename given by the user
+  if (sl_cli_get_argument_count(arguments) < 1) {
+    // TODO: Find a way to make the command name and arg name printing modular, not hardcoded
+    printf("usage: sd_read [filename]\r\n");
+    return;
+  }
+  fname = sl_cli_get_argument_string(arguments, 0);
+  mod_sd_ff_encode(fname, fnbuf, strlen(fname));
+
+  // Attempt to open a file with the given filename
+  res = f_open(&file, fnbuf, FA_READ);
+  if (res) {
+    printf("File not found: \"%s\"\r\n", fname);
+  }
+
+  // Read the file in chunks, and print each chunk
+  // TODO: Split up into read task and print task for more efficient operation
+  for(;;)
+  {
+    res = f_read(&file, buf, sizeof buf, &rcnt);
+    fwrite(buf, sizeof(char), rcnt, stdout);
+    if(rcnt < sizeof buf) break;
+  }
+
+  // Close the file
+  f_close(&file);
+
+
+}
 
 /***************************************************************************//**
  * Callback for sd_info
@@ -401,6 +401,7 @@ void echo_int(sl_cli_command_arg_t *arguments)
  ******************************************************************************/
 void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments)
 {
+  (void)arguments; // must accept as param but no need to use
   mod_sd_close_and_unmount_AW();
 }
 

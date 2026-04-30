@@ -93,7 +93,7 @@
 // <o SL_CLI_INST_TASK_STACK_SIZE> Task stack size
 // <i> Default: 400
 // <i> Stack size for the CLI task in words.
-  #define SL_CLI_INST_TASK_STACK_SIZE       400
+  #define SL_CLI_INST_TASK_STACK_SIZE       2480 //400
 
 // <o SL_CLI_INST_TASK_START_DELAY_MS> CLI task start delay
 // <i> Default: 0

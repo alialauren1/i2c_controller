@@ -3,6 +3,7 @@
  *
  *  Created on: Dec 2, 2025
  *      Author: lwelsh
+ *              awolken (Modified April 2026)
  *
  *
  *   TODO: Keep track of what I (AW) add to this:
@@ -12,11 +13,11 @@
  *   static void mod_sd_open_AW(void);
  *   mod_sd_open_AW(); // inside the function mod_sd_init_task()
  *
+ *
  *   Created the Functions:
  *   mod_sd_open_AW(void)
- *   mod_sd_close_AW(void)
- *
- *
+ *   mod_sd_close_and_unmount_AW(void)
+ *   mod_sd_write_AW()
  *
  */
 
