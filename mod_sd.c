@@ -96,7 +96,7 @@ void mod_sd_enable_hardware()
   GPIO_PinModeSet(gpioPortA, 2, gpioModePushPullAlternate, 1);  // SDIO_DAT2
   GPIO_PinModeSet(gpioPortA, 3, gpioModePushPullAlternate, 1);  // SDIO_DAT3
 
-
+  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull,1); // LED0 made green, starts OFF (active low so 1 is off)
 
   sl_sleeptimer_delay_millisecond(1);
 
@@ -254,7 +254,9 @@ static void mod_sd_open_AW(void){
 
   FRESULT fres = f_open(&fp, file_name, FA_CREATE_ALWAYS | FA_WRITE); // create file, FA_CREATE_ALWAYS truncates if it already exists
 
+
   if(fres==FR_OK){
+      GPIO_PinOutClear(gpioPortH,11); // LED is active low so this drives it low and turns LED on
       sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
       f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
       if(bw != 7){
@@ -277,6 +279,7 @@ void mod_sd_close_and_unmount_AW(void){
   OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
   f_close(&fp);
   f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
+  GPIO_PinOutSet(gpioPortH, 11);
   printf("SD card safe to remove.\r\n");
 }
 
