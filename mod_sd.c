@@ -51,6 +51,7 @@ static volatile FATFS fat_fs;
 static FIL fp;  // AW added
 static OS_MUTEX sd_mutex;         // AW, protecting fp so write and close cant overlap
 static volatile uint8_t sd_file_open = 0; // AW, 0 for when not safe to write, 1 for when is safe to write
+static volatile uint8_t sd_write_ok = 0;
 static void mod_sd_open_AW(void); // AW added, is a forward declaration
 
 static RTOS_ERR err;
@@ -258,6 +259,7 @@ static void mod_sd_open_AW(void){
   if(fres==FR_OK){
       GPIO_PinOutClear(gpioPortH,11); // LED is active low so this drives it low and turns LED on
       sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
+      sd_write_ok =1;
       f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
       if(bw != 7){
           printf("Write error: only %d of 7 bytes written\r\n", bw); // checks that all bytes were written to the file
@@ -275,7 +277,9 @@ static void mod_sd_open_AW(void){
 void mod_sd_close_and_unmount_AW(void){
   RTOS_ERR err;
   OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
+
   sd_file_open = 0;                                        // clear flag now that mutex is acquired
+
   OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
   f_close(&fp);
   f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
@@ -287,9 +291,22 @@ void mod_sd_write_AW(char *buf, int len){
   RTOS_ERR err;
   UINT bw;
   OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);  // acquire lock before touching fp
+
   if(sd_file_open){
-      f_write(&fp, buf, len, &bw);                          // only write to sd if fp is valid
-      f_sync(&fp);                                          // flush to SD card to protect against power loss before unmount
+      FRESULT fres = f_write(&fp, buf, len, &bw); // only write to sd if fp is valid
+      f_sync(&fp);                                // flush to SD card to protect against power loss before unmount
+      if(fres != FR_OK){
+          if(sd_write_ok){
+              sd_write_ok = 0;
+              GPIO_PinOutSet(gpioPortH, 11);    // turn LED off, only on transition from ok to failed
+              printf("SD write error: %d\r\n", fres);
+          }
+      } else {
+          if(!sd_write_ok){
+              sd_write_ok = 1;
+              GPIO_PinOutClear(gpioPortH, 11);  // turn LED on, only on transition from failed to ok
+          }
+      }
   }
   OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);             // release lock regardless
 }
