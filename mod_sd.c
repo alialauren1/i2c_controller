@@ -274,9 +274,9 @@ void mod_sd_close_and_unmount_AW(void){
   RTOS_ERR err;
   OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
   sd_file_open = 0;                                        // clear flag now that mutex is acquired
+  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
   f_close(&fp);
   f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
-  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
   printf("SD card safe to remove.\r\n");
 }
 
