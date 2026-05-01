@@ -251,7 +251,7 @@ void mod_sd_create_init_task()
 static void mod_sd_open_AW(void){
   UINT bw;                                   // bw (bytes written) so f_write fills this in after the write
   TCHAR file_name[16];                       // array for the UTF-16 encoded file path
-  mod_sd_ff_encode("data.txt", file_name,8); // convert "data.txt" from char to TCHAR for FatFS
+  mod_sd_ff_encode("data.csv", file_name,8); // convert "data.txt" from char to TCHAR for FatFS
 
   FRESULT fres = f_open(&fp, file_name, FA_CREATE_ALWAYS | FA_WRITE); // create file, FA_CREATE_ALWAYS truncates if it already exists
 
@@ -260,13 +260,8 @@ static void mod_sd_open_AW(void){
       GPIO_PinOutClear(gpioPortH,11); // LED is active low so this drives it low and turns LED on
       sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
       sd_write_ok =1;
-      f_write(&fp,"hello\r\n",7,&bw); // writes 7 bytes to the file, bw receives the actual bytes written
-      if(bw != 7){
-          printf("Write error: only %d of 7 bytes written\r\n", bw); // checks that all bytes were written to the file
-      }
-      else{
-          printf("File wrote all bytes\r\n");
-      }
+      f_write(&fp,"MOD LAB: Keller pressure sensor data\r\n",sizeof("MOD LAB: Keller pressure sensor data\r\n") - 1,&bw); // writes bytes to the file, bw receives the actual bytes written
+      f_write(&fp, "p_bar,t_f,t_s\r\n", sizeof("p_bar,t_f,t_s\r\n") - 1, &bw);
       printf("File created. \r\n");
   }
   else {

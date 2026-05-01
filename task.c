@@ -260,16 +260,17 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
       if (keller_buffer_retrieve(&sample)) {
           char data_array_for_sd_card[80];
           uint32_t t_ms = sl_sleeptimer_tick_to_ms(sl_sleeptimer_get_tick_count());
-          int len = snprintf(data_array_for_sd_card,sizeof(data_array_for_sd_card),"P=%s%d.%03d bar, T=%d.%02d F, t=%lu.%03lus\r\n",
+          int len = snprintf(data_array_for_sd_card,sizeof(data_array_for_sd_card),
+                             "%s%d.%03d,%d.%02d,%lu.%03lu\r\n",
                              sample.p_mbar<0 ? "-":"",
-                                 (int)(abs(sample.p_mbar) / 1000),
-                                                  (int)(abs(sample.p_mbar) % 1000),
-                                                  (int)((sample.t_centi * 9 / 5 + 3200) / 100),
-                                                  (int)((sample.t_centi * 9 / 5 + 3200) % 100),
-                                                  t_ms / 1000, t_ms % 1000); //-> t_centi (hundredths of C) to F
-                                                  //(int)(sample.t_centi / 100),  // Celcius
-                                                  //(int)(sample.t_centi % 100)); // Celcius
-          // printf("%s",data_array_for_sd_card);
+                             (int)(abs(sample.p_mbar) / 1000),
+                             (int)(abs(sample.p_mbar) % 1000),
+                             (int)((sample.t_centi * 9 / 5 + 3200) / 100),
+                             (int)((sample.t_centi * 9 / 5 + 3200) % 100),
+                             t_ms / 1000, t_ms % 1000); //-> t_centi (hundredths of C) to F
+                             //(int)(sample.t_centi / 100),  // Celcius
+                             //(int)(sample.t_centi % 100)); // Celcius
+                             // printf("%s",data_array_for_sd_card);
           mod_sd_write_AW(data_array_for_sd_card, len);
           }
 
