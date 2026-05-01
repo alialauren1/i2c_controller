@@ -209,10 +209,15 @@ void keller_get_pressure_task(void *p_arg)  // Sealed Gauge Sensor, measures 1 b
               temp_sum += t_centi;
               avg_sample_counter++;
               if (avg_sample_counter==AVG_SAMPLE_COUNT){
-                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT); // store in buffer for real time use
+                  uint32_t t_ms = sl_sleeptimer_tick_to_ms(sl_sleeptimer_get_tick_count());
+                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT, t_ms);// store in buffer for real time use
                   pressure_sum=0;
                   temp_sum=0;
                   avg_sample_counter=0;
+//                  keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT, temp_sum/AVG_SAMPLE_COUNT); // store in buffer for real time use
+//                  pressure_sum=0;
+//                  temp_sum=0;
+//                  avg_sample_counter=0;
               }
 
           }}
@@ -244,6 +249,7 @@ void retrieve_pressure_from_buffer_task_create(void) {
                (PRINT_PRESSURE_TASK_STK_SIZE / 10u),
                PRINT_PRESSURE_TASK_STK_SIZE,
                0u,
+
                0u,
                DEF_NULL,
                OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR,
@@ -260,25 +266,33 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
       keller_sample_t sample;
       if (keller_buffer_retrieve(&sample)) {
           char data_array_for_sd_card[80];
-          uint32_t t_ms = sl_sleeptimer_tick_to_ms(sl_sleeptimer_get_tick_count());
-          int len = snprintf(data_array_for_sd_card,sizeof(data_array_for_sd_card),
+//          uint32_t t_ms = sl_sleeptimer_tick_to_ms(sl_sleeptimer_get_tick_count());
+          int len = snprintf(data_array_for_sd_card, sizeof(data_array_for_sd_card),
                              "%s%d.%03d,%d.%02d,%lu.%03lu\r\n",
                              sample.p_mbar<0 ? "-":"",
                              (int)(abs(sample.p_mbar) / 1000),
                              (int)(abs(sample.p_mbar) % 1000),
                              (int)((sample.t_centi * 9 / 5 + 3200) / 100),
                              (int)((sample.t_centi * 9 / 5 + 3200) % 100),
-                             t_ms / 1000, t_ms % 1000); //-> t_centi (hundredths of C) to F
+                             sample.t_ms / 1000, sample.t_ms % 1000);
+//          int len = snprintf(data_array_for_sd_card,sizeof(data_array_for_sd_card),
+//                             "%s%d.%03d,%d.%02d,%lu.%03lu\r\n",
+//                             sample.p_mbar<0 ? "-":"",
+//                             (int)(abs(sample.p_mbar) / 1000),
+//                             (int)(abs(sample.p_mbar) % 1000),
+//                             (int)((sample.t_centi * 9 / 5 + 3200) / 100),
+//                             (int)((sample.t_centi * 9 / 5 + 3200) % 100),
+//                             t_ms / 1000, t_ms % 1000); //-> t_centi (hundredths of C) to F
                              //(int)(sample.t_centi / 100),  // Celcius
                              //(int)(sample.t_centi % 100)); // Celcius
                              // printf("%s",data_array_for_sd_card);
           mod_sd_write_AW(data_array_for_sd_card, len);
           }
 
-      if (GPIO_PinInGet(gpioPortC,8)==0 && mod_sd_is_open_AW()){ // sees if file is closed too
+      if (GPIO_PinInGet(gpioPortC,8)==0 && mod_sd_is_open_AW()){ // sees if pint has been pressed and if file is closed too
           mod_sd_close_and_unmount_AW();
       }
 
-      OSTimeDly(10, OS_OPT_TIME_DLY, &err);
+      OSTimeDly(SAMPLE_INTERVAL_MS/2, OS_OPT_TIME_DLY, &err);
   }
 }
