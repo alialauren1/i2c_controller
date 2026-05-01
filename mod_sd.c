@@ -292,17 +292,6 @@ void mod_sd_write_AW(char *buf, int len){
   UINT bw;
   OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);  // acquire lock before touching fp
 
-//  if(sd_file_open){
-//      FRESULT fres = f_write(&fp, buf, len, &bw);
-//      FRESULT fsync_res = f_sync(&fp);
-//      if(fres != FR_OK || fsync_res != FR_OK){
-//          printf("SD write error: %d\r\n", fres);
-//      } else {
-//          GPIO_PinOutClear(gpioPortH, 11);  // LED on
-//          sl_sleeptimer_delay_millisecond(50); // visible pulse
-//          GPIO_PinOutSet(gpioPortH, 11);    // LED off
-//      }
-//  }
   if(sd_file_open){
       FRESULT fres = f_write(&fp, buf, len, &bw); // only write to sd if fp is valid
       FRESULT fsync_res = f_sync(&fp);            // flush to SD card to protect against power loss before unmount
