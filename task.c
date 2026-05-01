@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include "Keller_Pressure_Buffer.h"
 #include <stdlib.h>
+#include "mod_sd.h"
 
 //For Keller_get_pressure_task
 #define SENSOR_I2C_ADDR     0x40
@@ -273,6 +274,10 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
                              // printf("%s",data_array_for_sd_card);
           mod_sd_write_AW(data_array_for_sd_card, len);
           }
+
+      if (GPIO_PinInGet(gpioPortC,8)==0 && mod_sd_is_open_AW()){ // sees if file is closed too
+          mod_sd_close_and_unmount_AW();
+      }
 
       OSTimeDly(10, OS_OPT_TIME_DLY, &err);
   }

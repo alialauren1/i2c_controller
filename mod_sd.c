@@ -15,6 +15,9 @@
  *
  *   // the mutex code inside mod_sd_create_init_task()
  *
+ *   GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull,1); // LED0 made green, starts OFF (active low so 1 is off)
+ *   GPIO_PinModeSet(gpioPortH,10,gpioModeInputPull,1);
+ *
  *   Created the Functions:
  *   mod_sd_open_AW(void)
  *   mod_sd_close_and_unmount_AW(void)
@@ -98,6 +101,7 @@ void mod_sd_enable_hardware()
   GPIO_PinModeSet(gpioPortA, 3, gpioModePushPullAlternate, 1);  // SDIO_DAT3
 
   GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull,1); // LED0 made green, starts OFF (active low so 1 is off)
+  GPIO_PinModeSet(gpioPortC,8,gpioModeInputPull,1); // 1 sets pull-up so the pin reads high at rest, pressing button pulls it low
 
   sl_sleeptimer_delay_millisecond(1);
 
@@ -269,18 +273,36 @@ static void mod_sd_open_AW(void){
   }
 }
 
-void mod_sd_close_and_unmount_AW(void){
-  RTOS_ERR err;
-  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
+void mod_sd_close_and_unmount_AW(void) {
+    RTOS_ERR err;
+    OSMutexPend(&sd_mutex, 0, OS_OPT_PEND_BLOCKING, NULL, &err); // acquire mutex
 
-  sd_file_open = 0;                                        // clear flag now that mutex is acquired
+    if (!sd_file_open) {
+        OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err);
+        printf("SD card already unmounted.\r\n");
+        return;
+    }
 
-  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
-  f_close(&fp);
-  f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
-  GPIO_PinOutSet(gpioPortH, 11);
-  printf("SD card safe to remove.\r\n");
+    sd_file_open = 0; // clear flag now that mutex is acquired
+    OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err); // release the lock
+    f_close(&fp);
+    f_mount(NULL, (TCHAR*)"", 0); // unmount file system
+    GPIO_PinOutSet(gpioPortH, 11);
+    printf("SD card safe to remove.\r\n");
 }
+//
+//void mod_sd_close_and_unmount_AW(void){
+//  RTOS_ERR err;
+//  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
+//
+//  sd_file_open = 0;                                        // clear flag now that mutex is acquired
+//
+//  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
+//  f_close(&fp);
+//  f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
+//  GPIO_PinOutSet(gpioPortH, 11);
+//  printf("SD card safe to remove.\r\n");
+//}
 
 void mod_sd_write_AW(char *buf, int len){
   RTOS_ERR err;
@@ -305,4 +327,7 @@ void mod_sd_write_AW(char *buf, int len){
   }
   OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);             // release lock regardless
 }
+
+uint8_t mod_sd_is_open_AW(void) { return sd_file_open; }
+
 
