@@ -44,5 +44,6 @@ void mod_sd_create_init_task();
 void mod_sd_close_and_unmount_AW(void);
 void mod_sd_write_AW(char *buf, int len);
 uint8_t mod_sd_is_open_AW(void);
+void mod_sd_enable_hardware_AW(void);
 
 #endif /* MOD_SD_H_ */

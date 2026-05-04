@@ -101,8 +101,8 @@ void mod_sd_enable_hardware()
   GPIO_PinModeSet(gpioPortA, 2, gpioModePushPullAlternate, 1);  // SDIO_DAT2
   GPIO_PinModeSet(gpioPortA, 3, gpioModePushPullAlternate, 1);  // SDIO_DAT3
 
-  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull,1); // LED0 made green, starts OFF (active low so 1 is off)
-  GPIO_PinModeSet(gpioPortC,8,gpioModeInputPull,1); // 1 sets pull-up so the pin reads high at rest, pressing button pulls it low
+//  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull,1); // LED0 made green, starts OFF (active low so 1 is off)
+//  GPIO_PinModeSet(gpioPortC,8,gpioModeInputPull,1); // 1 sets pull-up so the pin reads high at rest, pressing button pulls it low
 
   sl_sleeptimer_delay_millisecond(1);
 
@@ -184,7 +184,7 @@ void mod_sd_init_task()
 {
   volatile FRESULT res;
 
-
+  mod_sd_enable_hardware_AW();
 //  mod_sd_enable_hardware();
 
   MICROSD_Init();
@@ -332,5 +332,10 @@ void mod_sd_write_AW(char *buf, int len){
 }
 
 uint8_t mod_sd_is_open_AW(void) { return sd_file_open; }
+
+void mod_sd_enable_hardware_AW(void) {
+  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull, 1); // LED0, active low, starts OFF
+  GPIO_PinModeSet(gpioPortC, 8, gpioModeInputPull, 1); // BTN0, pull-up so reads high at rest
+}
 
 
