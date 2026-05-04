@@ -268,7 +268,7 @@ static void mod_sd_open_AW(void){
       sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
       sd_write_ok =1;
       f_write(&fp,"MOD LAB: Keller pressure sensor data\r\n",sizeof("MOD LAB: Keller pressure sensor data\r\n") - 1,&bw); // writes bytes to the file, bw receives the actual bytes written
-      f_write(&fp, "p_bar,t_f,t_s\r\n", sizeof("p_bar,t_f,t_s\r\n") - 1, &bw);
+      f_write(&fp, "Pressure [bar],Temperature [F],time [sec]\r\n", sizeof("Pressure [bar],Temperature [F],time [sec]\r\n") - 1, &bw);
       printf("File created. \r\n");
   }
   else {
@@ -293,19 +293,6 @@ void mod_sd_close_and_unmount_AW(void) {
     GPIO_PinOutSet(gpioPortH, 11);
     printf("SD card safe to remove.\r\n");
 }
-//
-//void mod_sd_close_and_unmount_AW(void){
-//  RTOS_ERR err;
-//  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err); // acquire mutex
-//
-//  sd_file_open = 0;                                        // clear flag now that mutex is acquired
-//
-//  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err); // release the lock
-//  f_close(&fp);
-//  f_mount(NULL, (TCHAR*)"", 0);                 // unmount file system
-//  GPIO_PinOutSet(gpioPortH, 11);
-//  printf("SD card safe to remove.\r\n");
-//}
 
 void mod_sd_write_AW(char *buf, int len){
   RTOS_ERR err;
