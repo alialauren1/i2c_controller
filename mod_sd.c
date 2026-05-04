@@ -39,6 +39,7 @@
 #include "app.h"
 #include "mod_sd.h"
 //#include <stdalign.h>
+#include "microsd.h"
 
 //TaskHandle_t mod_sd_init_task_handle;
 //TaskHandle_t mod_sd_cmd_task_handle;
@@ -184,7 +185,9 @@ void mod_sd_init_task()
   volatile FRESULT res;
 
 
-  mod_sd_enable_hardware();
+//  mod_sd_enable_hardware();
+
+  MICROSD_Init();
 
 //  SEGGER_SYSVIEW_WarnfHost("mount");
   res = f_mount(&fat_fs,(TCHAR*)"", 1);
