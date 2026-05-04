@@ -1,25 +1,31 @@
 /***************************************************************************//**
- * @file
- * @brief SDv2 (in SDIO mode) control module
- * @version 0.0.1
- *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Labs, Inc. http://www.silabs.com</b>
- *******************************************************************************
- *
- * This file is licensed under the Silabs License Agreement. See the file
- * "Silabs_License_Agreement.txt" for details. Before using this software for
- * any purpose, you must agree to the terms of that agreement.
- *
+ * 
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is Third Party Software licensed by Silicon Labs from a third party
+ * and is governed by the sections of the MSLA applicable to Third Party
+ * Software and the additional terms set forth below.
+ * 
  ******************************************************************************/
 
+/*------------------------------------------------------------------------/
+/  MMCv3/SDv1/SDv2 (in SPI mode) control module
+/-------------------------------------------------------------------------/
+/
+/  Copyright (C) 2010, ChaN, all right reserved.
+/
+/ * This software is a free software and there is NO WARRANTY.
+/ * No restriction on use. You can use, modify and redistribute it for
+/   personal, non-profit or commercial products UNDER YOUR RESPONSIBILITY.
+/ * Redistributions of source code must retain the above copyright notice.
+/
+/-------------------------------------------------------------------------*/
 
 #include "diskio.h"
-#include "sdio.h"
-#include "em_cmu.h"
-#include "sl_sleeptimer.h"
-#include "em_wdog.h"
-#include "mod_som_config.h"
+#include "microsd.h"
 
 static DSTATUS stat = STA_NOINIT;  /* Disk status */
 static UINT CardType;
@@ -30,75 +36,57 @@ static UINT CardType;
 
 ---------------------------------------------------------------------------*/
 
-DWORD get_fattime(void)
-{
-  // 2025 01 27 LW: SD card file create/modify times now pull from the system time
-  // See http://elm-chan.org/fsw/ff/doc/fattime.html
-
-  //return (28 << 25) | (2 << 21) | (1 << 16);
-
-  DWORD fattime = 0;
-  sl_sleeptimer_date_t date;
-  sl_sleeptimer_get_datetime(&date);
-  //char *format="%Y-%m-%d %H:%M:%S";
-  //char str_date[50];
-  //sl_sleeptimer_convert_date_to_str(str_date,50,(uint8_t*)format,&date);
-
-  fattime = ((date.year - 80) << 25) | ((date.month + 1) << 21) | (date.month_day << 16) |
-      (date.hour << 11) | (date.min << 5) | (date.sec / 2);
-
-  return fattime;
-}
-
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize (
-  BYTE drv  /* Physical drive number (0) */
+  BYTE drv  /* Physical drive nmuber (0) */
 )
 {
-
-  // 2025 04 25 LW: Check if SD card is present before trying to initialize
-  disk_status(drv);
+  BYTE n, cmd, ty, ocr[4];
 
   if (drv) return STA_NOINIT;                   /* Supports only single drive */
   if (stat & STA_NODISK) return stat;           /* No card in the socket */
 
-  if (stat&STA_NOINIT)
-  {
-    // Initialization of SDIO and Card
-    // 2024 12 12 LW: Use HF clock instead of HFPER clock
-    uint8_t resp =
-        SDIO_Init(SDIO,
-              MOD_SOM_FATFS_ACTIVE_SDCLK_FREQ,             // 400kHz
-              cmuClock_HF);
-    //ALB check status again because I added a stat = NODISK inside SendCMDWithOutDAT
-    //ALB TODO figure how cmd are sent exactly to the SD card and set the timer inside disk_status
+  MICROSD_PowerOn();                            /* Force socket power on */
+  MICROSD_SpiClkSlow();                         /* Start with low SPI clock. */
+  for (n = 10; n; n--) MICROSD_XferSpi(0xff);   /* 80 dummy clocks */
 
-    if(resp)
-    {
-        stat |= STA_NOINIT;
-        return stat;
+  ty = 0;
+  if (MICROSD_SendCmd(CMD0, 0) == 1) {          /* Enter Idle state */
+    MICROSD_TimeOutSet(1000);                   /* Initialization timeout of 1000 msec */
+    if (MICROSD_SendCmd(CMD8, 0x1AA) == 1) {    /* SDv2? */
+      for (n = 0; n < 4; n++) ocr[n] = MICROSD_XferSpi(0xff); /* Get trailing return value of R7 resp */
+      if (ocr[2] == 0x01 && ocr[3] == 0xAA) {   /* The card can work at vdd range of 2.7-3.6V */
+        while (!MICROSD_TimeOutElapsed() && MICROSD_SendCmd(ACMD41, 0x40000000)); /* Wait for leaving idle state (ACMD41 with HCS bit) */
+        if (!MICROSD_TimeOutElapsed() && MICROSD_SendCmd(CMD58, 0) == 0) {        /* Check CCS bit in the OCR */
+          for (n = 0; n < 4; n++) ocr[n] = MICROSD_XferSpi(0xff);
+          ty = (ocr[0] & 0x40) ? CT_SD2|CT_BLOCK : CT_SD2; /* SDv2 */
+        }
+      }
+    } else {                                    /* SDv1 or MMCv3 */
+      if (MICROSD_SendCmd(ACMD41, 0) <= 1) {
+        ty = CT_SD1; cmd = ACMD41;              /* SDv1 */
+      } else {
+        ty = CT_MMC; cmd = CMD1;                /* MMCv3 */
+      }
+      while (!MICROSD_TimeOutElapsed() && MICROSD_SendCmd(cmd, 0));     /* Wait for leaving idle state */
+      if (MICROSD_TimeOutElapsed() || MICROSD_SendCmd(CMD16, 512) != 0) /* Set read/write block length to 512 */
+        ty = 0;
     }
-
-    if (stat & STA_NODISK) return stat;           /* No card in the socket */
-
-	uint8_t a_u8 = SDIO_GetActCardStateType();
-	switch(a_u8){
-	  case SDHC_SDXC:
-	  {
-	    CardType = CT_BLOCK;
-	    break;
-	  }
-	  case SDSC_Ver200_or_Ver300:
-    {
-      CardType = CT_SDC;
-      break;
-    }
-	}
   }
-  stat &= ~STA_NOINIT;                        /* Clear STA_NOINIT */
+  CardType = ty;
+  MICROSD_Deselect();
+
+  if (ty) {                                     /* Initialization succeded */
+    stat &= ~STA_NOINIT;                        /* Clear STA_NOINIT */
+    MICROSD_SpiClkFast();                       /* Speed up SPI clock. */
+  } else {                                      /* Initialization failed */
+    MICROSD_PowerOff();
+    stat |= STA_NOINIT;                         /* Set STA_NOINIT */
+  }
+
   return stat;
 }
 
@@ -110,29 +98,8 @@ DSTATUS disk_status (
   BYTE drv                        /* Physical drive nmuber (0) */
 )
 {
-  //if (drv) return STA_NOINIT;     /* Supports only single drive */
-
-  //ALB quick change to detect absence of SD card with software.
-  //ALB the check is done inside sdio.c SDIO_S_CardInitialization_and_Identification
-  //ALB using a delay I set inside SDIO_S_SendCMDWithOutDAT. SDIO_S_SendCMDWithOutDAT will return
-  //ALB STA_NODISK instead of the default 1 (i think). TODO check on this.
-//  if (drv==STA_NODISK){
-//      stat=STA_NODISK;
-//  }
-
   if (drv) return STA_NOINIT;     /* Supports only single drive */
-
-  if(GPIO_PinInGet(gpioPortB, 10))         // Check Card Detect pin
-  {
-      stat |= (STA_NOINIT | STA_NODISK);  // No card present
-  }
-  else
-  {
-      stat &= ~(STA_NODISK);              // Card present
-  }
-
   return stat;
-
 }
 
 /*-----------------------------------------------------------------------*/
@@ -149,40 +116,23 @@ DRESULT disk_read (
   if (drv || !count) return RES_PARERR;
   if (stat & STA_NOINIT) return RES_NOTRDY;
 
-  // 2025 01 02 LW: Proper sector ID to byte address conversion
-  if (!(CardType & CT_BLOCK)) sector = sector << 9;  /* Convert to byte address if needed */
-  //2025 08 28 SAN update to give each read a few tries if error
-//    int32_t tries, res = 0;
-//  while(count != 0)
-//  {
-//      for(tries=0;tries<5;tries++){
-//          res = SDIO_ReadSingleBlock(SDIO,sector,buff);
-//          if(res==0){
-//              break;
-//          }
-//      }
-//      if(res){
-//          return RES_ERROR;
-//          break;
-//      }
-//	  sector++;
-//	  count--;
-//	  // 2025 07 08 LW: Feed watchdog after successful read
-//	  //WDOG_Feed();
-//  }
+  if (!(CardType & CT_BLOCK)) sector *= 512;  /* Convert to byte address if needed */
 
-  //2025 12 08 LW: Use the multi-block write command when block count is greater than 1
-  if(count == 1)
-  {
-    SDIO_ReadSingleBlock(SDIO,sector,buff);
-    sector++;
-    count--;
+  if (count == 1) {                           /* Single block read */
+    if ((MICROSD_SendCmd(CMD17, sector) == 0) /* READ_SINGLE_BLOCK */
+      && MICROSD_BlockRx(buff, 512))
+      count = 0;
   }
-  else
-  {
-    SDIO_ReadMultipleBlocks(SDIO,sector,buff,count);
-    count = 0;
+  else {                                        /* Multiple block read */
+    if (MICROSD_SendCmd(CMD18, sector) == 0) {  /* READ_MULTIPLE_BLOCK */
+      do {
+        if (!MICROSD_BlockRx(buff, 512)) break;
+        buff += 512;
+      } while (--count);
+      MICROSD_SendCmd(CMD12, 0);                /* STOP_TRANSMISSION */
+    }
   }
+  MICROSD_Deselect();
 
   return count ? RES_ERROR : RES_OK;
 }
@@ -203,31 +153,32 @@ DRESULT disk_write (
   if (stat & STA_NOINIT) return RES_NOTRDY;
   if (stat & STA_PROTECT) return RES_WRPRT;
 
-  // 2025 01 02 LW: Proper sector ID to byte address conversion
-  if (!(CardType & CT_BLOCK)) sector = sector << 9;  /* Convert to byte address if needed */
+  if (!(CardType & CT_BLOCK)) sector *= 512;  /* Convert to byte address if needed */
 
-  //2025 12 08 LW: Use the multi-block write command when block count is greater than 1
-  if(count == 1)
-  {
-    SDIO_WriteSingleBlock(SDIO,sector,buff);
-    sector++;
-    count--;
+  if (count == 1) {                           /* Single block write */
+    if ((MICROSD_SendCmd(CMD24, sector) == 0) /* WRITE_BLOCK */
+      && MICROSD_BlockTx(buff, 0xFE))
+      count = 0;
   }
-  else
-  {
-    SDIO_WriteMultipleBlocks(SDIO,sector,buff,count);
-    count = 0;
+  else {                                      /* Multiple block write */
+    if (CardType & CT_SDC) MICROSD_SendCmd(ACMD23, count);
+    if (MICROSD_SendCmd(CMD25, sector) == 0) {/* WRITE_MULTIPLE_BLOCK */
+      do {
+        if (!MICROSD_BlockTx(buff, 0xFC)) break;
+        buff += 512;
+      } while (--count);
+      if (!MICROSD_BlockTx(0, 0xFD))          /* STOP_TRAN token */
+        count = 1;
+    }
   }
+  MICROSD_Deselect();
 
   return count ? RES_ERROR : RES_OK;
 }
 #endif /* _READONLY */
 
 /*-----------------------------------------------------------------------*/
-/* Miscellaneous Functions
- * !!!!!!!!!!!!!!!!!!!!!!!!!
- * with STUBBED RETURN VALUES
- * !!!!!!!!!!!!!!!!!!!!!!!!!                                               */
+/* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
 DRESULT disk_ioctl (
@@ -239,7 +190,7 @@ DRESULT disk_ioctl (
   DRESULT res;
   BYTE n, csd[16], *ptr = buff;
   DWORD csize;
-  uint32_t val = 0;
+
 
   if (drv) return RES_PARERR;
   if (stat & STA_NOINIT) return RES_NOTRDY;
@@ -247,8 +198,10 @@ DRESULT disk_ioctl (
   res = RES_ERROR;
   switch (ctrl) {
     case CTRL_SYNC :                /* Flush dirty buffer if present */
-      SDIO_WaitForWriteFinish(SDIO);
-      res = RES_OK;
+      if (MICROSD_Select()) {
+        MICROSD_Deselect();
+        res = RES_OK;
+      }
       break;
 
     case CTRL_INVALIDATE :          /* Used when unmounting */
@@ -257,25 +210,84 @@ DRESULT disk_ioctl (
       break;
 
     case GET_SECTOR_COUNT :         /* Get number of sectors on the disk (WORD) */
-      res = SDIO_GetSectorCount(SDIO, &val);
-      if(res == RES_OK) *(DWORD*)buff = val;
+      if ((MICROSD_SendCmd(CMD9, 0) == 0) && MICROSD_BlockRx(csd, 16)) {
+        if ((csd[0] >> 6) == 1) {                     /* SDv2? */
+          csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+          *(DWORD*)buff = (DWORD)csize << 10;
+        } else {                                      /* SDv1 or MMCv2 */
+          n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
+          csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+          *(DWORD*)buff = (DWORD)csize << (n - 9);
+        }
+        res = RES_OK;
+      }
       break;
 
     case GET_SECTOR_SIZE :          /* Get sectors on the disk (WORD) */
-      *(DWORD*)buff = 512;
+      *(WORD*)buff = 512;
       res = RES_OK;
       break;
 
     case GET_BLOCK_SIZE :           /* Get erase block size in unit of sectors (DWORD) */
-      res = SDIO_GetBlockSize(SDIO, &val);
-      if(res == RES_OK) *(DWORD*)buff = val;
-//      *(DWORD*)buff = 0x01;
-//      res = RES_OK;
+      if (CardType & CT_SD2) {      /* SDv2? */
+        if (MICROSD_SendCmd(ACMD13, 0) == 0) {    /* Read SD status */
+          MICROSD_XferSpi(0xff);
+          if (MICROSD_BlockRx(csd, 16)) {         /* Read partial block */
+            for (n = 64 - 16; n; n--) MICROSD_XferSpi(0xff); /* Purge trailing data */
+            *(DWORD*)buff = 16UL << (csd[10] >> 4);
+            res = RES_OK;
+          }
+        }
+      } else {                      /* SDv1 or MMCv3 */
+        if ((MICROSD_SendCmd(CMD9, 0) == 0) && MICROSD_BlockRx(csd, 16)) {  /* Read CSD */
+          if (CardType & CT_SD1) {	/* SDv1 */
+            *(DWORD*)buff = (((csd[10] & 63) << 1) + ((WORD)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
+          } else {                  /* MMCv3 */
+            *(DWORD*)buff = ((WORD)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
+          }
+          res = RES_OK;
+        }
+      }
+      break;
+
+    case MMC_GET_TYPE :             /* Get card type flags (1 byte) */
+      *ptr = CardType;
+      res = RES_OK;
+      break;
+
+    case MMC_GET_CSD :              /* Receive CSD as a data block (16 bytes) */
+      if ((MICROSD_SendCmd(CMD9, 0) == 0)       /* READ_CSD */
+        && MICROSD_BlockRx(buff, 16))
+        res = RES_OK;
+      break;
+
+    case MMC_GET_CID :              /* Receive CID as a data block (16 bytes) */
+      if ((MICROSD_SendCmd(CMD10, 0) == 0)      /* READ_CID */
+        && MICROSD_BlockRx(buff, 16))
+        res = RES_OK;
+      break;
+
+    case MMC_GET_OCR :              /* Receive OCR as an R3 resp (4 bytes) */
+      if (MICROSD_SendCmd(CMD58, 0) == 0) {     /* READ_OCR */
+        for (n = 0; n < 4; n++)
+          *((BYTE*)buff+n) = MICROSD_XferSpi(0xff);
+        res = RES_OK;
+      }
+      break;
+
+    case MMC_GET_SDSTAT :           /* Receive SD statsu as a data block (64 bytes) */
+      if (MICROSD_SendCmd(ACMD13, 0) == 0) {    /* SD_STATUS */
+        MICROSD_XferSpi(0xff);
+        if (MICROSD_BlockTx(buff, 64))
+          res = RES_OK;
+      }
       break;
 
     default:
       res = RES_PARERR;
   }
+
+  MICROSD_Deselect();
 
   return res;
 }
