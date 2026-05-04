@@ -26,6 +26,7 @@
 
 #include "diskio.h"
 #include "microsd.h"
+#include "sl_sleeptimer.h"
 
 static DSTATUS stat = STA_NOINIT;  /* Disk status */
 static UINT CardType;
@@ -35,6 +36,26 @@ static UINT CardType;
    Public Functions
 
 ---------------------------------------------------------------------------*/
+
+DWORD get_fattime(void)
+{
+  // 2025 01 27 LW: SD card file create/modify times now pull from the system time
+  // See http://elm-chan.org/fsw/ff/doc/fattime.html
+
+  //return (28 << 25) | (2 << 21) | (1 << 16);
+
+  DWORD fattime = 0;
+  sl_sleeptimer_date_t date;
+  sl_sleeptimer_get_datetime(&date);
+  //char *format="%Y-%m-%d %H:%M:%S";
+  //char str_date[50];
+  //sl_sleeptimer_convert_date_to_str(str_date,50,(uint8_t*)format,&date);
+
+  fattime = ((date.year - 80) << 25) | ((date.month + 1) << 21) | (date.month_day << 16) |
+      (date.hour << 11) | (date.min << 5) | (date.sec / 2);
+
+  return fattime;
+}
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */

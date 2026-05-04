@@ -91,8 +91,11 @@ void MICROSD_Init(void)
   USART_InitSync(MICROSD_USART, &init);
 
   /* Enabling pins and setting location, SPI CS not enable */
-  MICROSD_USART->ROUTE = USART_ROUTE_TXPEN | USART_ROUTE_RXPEN
-                         | USART_ROUTE_CLKPEN | MICROSD_LOC;
+//  MICROSD_USART->ROUTE = USART_ROUTE_TXPEN | USART_ROUTE_RXPEN
+//                         | USART_ROUTE_CLKPEN | MICROSD_LOC;
+  // 2026 05 04 LW: Keeping SPI CS not enabled as above
+  MICROSD_USART->ROUTELOC0 = MICROSD_CLKLOC | MICROSD_TXLOC | MICROSD_RXLOC;
+  MICROSD_USART->ROUTEPEN = USART_ROUTEPEN_CLKPEN | USART_ROUTEPEN_TXPEN | USART_ROUTEPEN_RXPEN;
 
 #if defined(USART_CTRL_SMSDELAY)
   /* This will allow us to use higher baudrate. */
