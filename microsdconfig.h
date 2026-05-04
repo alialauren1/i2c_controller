@@ -21,7 +21,7 @@
 #define MICROSD_HI_SPI_FREQ     1000000
 #define MICROSD_LO_SPI_FREQ     100000
 
-#if defined(BSP_STK_BRD2204A)
+//#if defined(BSP_STK_BRD2204A)
 #define MICROSD_USART           USART0
 #define MICROSD_TXLOC           USART_ROUTELOC0_TXLOC_LOC0
 #define MICROSD_RXLOC           USART_ROUTELOC0_RXLOC_LOC0
@@ -32,17 +32,17 @@
 #define MICROSD_MISOPIN         11
 #define MICROSD_CSPIN           13
 #define MICROSD_CLKPIN          12
-#else
-#define MICROSD_USART           USART2
-#define MICROSD_TXLOC           USART_ROUTELOC0_TXLOC_LOC1
-#define MICROSD_RXLOC           USART_ROUTELOC0_RXLOC_LOC1
-#define MICROSD_CLKLOC          USART_ROUTELOC0_CLKLOC_LOC1
-#define MICROSD_CMUCLOCK        cmuClock_USART2
-#define MICROSD_GPIOPORT        gpioPortA
-#define MICROSD_MOSIPIN         6
-#define MICROSD_MISOPIN         7
-#define MICROSD_CSPIN           9
-#define MICROSD_CLKPIN          8
-#endif
+//#else
+//#define MICROSD_USART           USART2
+//#define MICROSD_TXLOC           USART_ROUTELOC0_TXLOC_LOC1
+//#define MICROSD_RXLOC           USART_ROUTELOC0_RXLOC_LOC1
+//#define MICROSD_CLKLOC          USART_ROUTELOC0_CLKLOC_LOC1
+//#define MICROSD_CMUCLOCK        cmuClock_USART2
+//#define MICROSD_GPIOPORT        gpioPortA
+//#define MICROSD_MOSIPIN         6
+//#define MICROSD_MISOPIN         7
+//#define MICROSD_CSPIN           9
+//#define MICROSD_CLKPIN          8
+//#endif
 
 #endif /* __MICROSDCONFIG_H */
