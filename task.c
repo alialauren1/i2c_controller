@@ -74,12 +74,11 @@ static OS_TCB  keller_tcb;
 static CPU_STK retrieve_from_buf_stk[RETRIEVE_P_FROM_BUF_TASK_STK_SIZE];
 static OS_TCB  retrieve_from_buf_tcb;
 
-#define SD_BATCH_WRITE_SIZE 512
+#define SD_BUF_WRITE_SIZE 512
 #define SD_SAMPLES_PER_WRITE 15
-static char sd_batch_write_buf[SD_BATCH_WRITE_SIZE];
-static int sd_batch_sample_count = 0;
+static char sd_write_buf[SD_BUF_WRITE_SIZE];
+static int sd_buffer_sample_count = 0;
 static int sd_bytes_merged = 0;
-static int sd_batch_fully_dumped = 0;
 static char data_array_for_sd_card[34]; // define at top of file and make static char array so doesn't use stack memory, possibly taking 80 bytes every run
 
 //For Button task
@@ -93,6 +92,9 @@ static OS_TCB  button_tcb;
 #define ERR_TASK_STK_SIZE  128u
 static CPU_STK err_stk[ERR_TASK_STK_SIZE];
 static OS_TCB  err_tcb;
+
+volatile bool on_recording_flag = true; // on/off recording flag
+volatile bool single_read_flag = false; // read one set of values
 
 //For Keller_get_pressure_task
 static bool keller_p_sensor_init(void) // Safety formality: checks if sensor responds to its address being called
@@ -316,7 +318,16 @@ void keller_get_pressure_task(void *p_arg)
           case STATE_DELAY: {
               uint32_t now = sl_sleeptimer_get_tick_count();
               if ((uint32_t)(now - cycle_start) >= total_interval_ticks) {
-                  state = STATE_WRITE;
+                  if (on_recording_flag){                                       // if recording flag is on, then move on to write/trigger state
+                      state = STATE_WRITE;
+                  }
+                  else {
+                      while (!on_recording_flag && !single_read_flag){
+                          OSTimeDly(500, OS_OPT_TIME_DLY, &delay_err);         // yield to CPU every 500 ms so other tasks can run
+                      }
+                      state = STATE_WRITE;
+                  }
+
               }
               else if ((uint32_t)(now - cycle_start) < total_interval_ticks) {
                   RTOS_ERR yield_err;
@@ -366,42 +377,53 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
 
       while (keller_buffer_retrieve(&sample)) {
 
-          if (!mod_sd_is_open_AW()){
-             break; // if SD card not open, exit loop
-          }
-
-          uint32_t freq = sl_sleeptimer_get_timer_frequency();                                // 32768 on EFM32GG11
+          uint32_t freq = sl_sleeptimer_get_timer_frequency();                                              // 32768 on EFM32GG11
           uint64_t t_sec_whole = sample.t_ticks / freq;
           uint64_t t_sec_frac  = ((sample.t_ticks % freq) * 1000000) / freq;
 
-          int len = snprintf(data_array_for_sd_card, sizeof(data_array_for_sd_card),
-                             "%c%03d.%03d,%03d.%02d,%02lu%06lu.%06lu\r\n",
-                             (sample.p_mbar<0 ? '-':' '),
-                             (int)(abs(sample.p_mbar) / 1000),
-                             (int)(abs(sample.p_mbar) % 1000),
-                             (int)((sample.t_centi * 9 / 5 + 3200) / 100),
-                             (int)((sample.t_centi * 9 / 5 + 3200) % 100),
-                             (uint32_t)(t_sec_whole / 1000000),
-                             (uint32_t)(t_sec_whole % 1000000),
-                             (uint32_t)t_sec_frac);
-
-          memcpy(sd_batch_write_buf+(sd_batch_sample_count*len), data_array_for_sd_card,len); // copy "len" from "data_array_for_sd_card" into "sd_batch_write_buf+(sd_batch_sample_count*len)"
-                                                                                              // ^ the addition moves destination pointer forward by bytes already accumulated
-          sd_batch_sample_count++;
-          sd_bytes_merged += len; // bytes written to data_array_for_sd_card
-
-          if (sd_batch_sample_count >= SD_SAMPLES_PER_WRITE){
-              uint32_t write_start = sl_sleeptimer_get_tick_count();
-              bool write_ok = mod_sd_write_AW(sd_batch_write_buf,sd_batch_sample_count*len);
-              uint32_t write_end = sl_sleeptimer_get_tick_count();
-              uint32_t write_ms = sl_sleeptimer_tick_to_ms(write_end - write_start);
-//              printf("SD W: %lu ms\r\n", write_ms);
-              if (!write_ok){
-                  printf("Write failed for buffer \r\n");
-              }
-              sd_batch_sample_count=0;
-              sd_bytes_merged = 0;
+          if (single_read_flag){
+              printf("P: %c%03d.%03d bar, T: %03d.%02d F, t: %02lu%06lu.%06lu\r\n",
+                                   (sample.p_mbar<0 ? '-':' '),
+                                   (int)(abs(sample.p_mbar) / 1000),
+                                   (int)(abs(sample.p_mbar) % 1000),
+                                   (int)((sample.t_centi * 9 / 5 + 3200) / 100),
+                                   (int)((sample.t_centi * 9 / 5 + 3200) % 100),
+                                   (uint32_t)(t_sec_whole / 1000000),
+                                   (uint32_t)(t_sec_whole % 1000000),
+                                   (uint32_t)t_sec_frac);
+              single_read_flag = false; // clear flag
           }
+
+          if (on_recording_flag && mod_sd_is_open_AW()){                                                    // write to SD only when recording
+              int len = snprintf(data_array_for_sd_card, sizeof(data_array_for_sd_card),
+                                           "%c%03d.%03d,%03d.%02d,%02lu%06lu.%06lu\r\n",
+                                           (sample.p_mbar<0 ? '-':' '),
+                                           (int)(abs(sample.p_mbar) / 1000),
+                                           (int)(abs(sample.p_mbar) % 1000),
+                                           (int)((sample.t_centi * 9 / 5 + 3200) / 100),
+                                           (int)((sample.t_centi * 9 / 5 + 3200) % 100),
+                                           (uint32_t)(t_sec_whole / 1000000),
+                                           (uint32_t)(t_sec_whole % 1000000),
+                                           (uint32_t)t_sec_frac);
+
+                        memcpy(sd_write_buf+(sd_buffer_sample_count*len), data_array_for_sd_card,len); // copy "len" from "data_array_for_sd_card" into "sd_write_buf+(sd_buffer_sample_count*len)"
+                                                                                                            // ^ the addition moves destination pointer forward by bytes already accumulated
+                        sd_buffer_sample_count++;
+                        sd_bytes_merged += len;                                                             // bytes written to data_array_for_sd_card
+
+                        if (sd_buffer_sample_count >= SD_SAMPLES_PER_WRITE){                                 // accumulate sample into buffer
+                            uint32_t write_start = sl_sleeptimer_get_tick_count();
+                            bool write_ok = mod_sd_write_AW(sd_write_buf,sd_buffer_sample_count*len);
+                            uint32_t write_end = sl_sleeptimer_get_tick_count();
+                            uint32_t write_ms = sl_sleeptimer_tick_to_ms(write_end - write_start);
+                            if (!write_ok){
+                                printf("Write failed for buffer \r\n");
+                            }
+                            sd_buffer_sample_count=0;                                                       // reset buffer sample counter after write
+                            sd_bytes_merged = 0;                                                            // reset byte counter after write
+                        }
+          }
+
       }
 
       OSTimeDly(TOTAL_INTERVAL_MS/2, OS_OPT_TIME_DLY, &err);
@@ -409,14 +431,40 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
 }
 
 static void flush_sd_before_close(void){
-  if (sd_batch_sample_count>0 && mod_sd_is_open_AW()) {       // sample count should be reset to zero if fully written to sd card, mod_sd_is_open_AW should return 1 if open
-      mod_sd_write_AW(sd_batch_write_buf,sd_bytes_merged);    // write to sd card what didn't get written as a full batch write
-      sd_batch_sample_count=0;
+  if (sd_buffer_sample_count>0 && mod_sd_is_open_AW()) {                   // sample count should be reset to zero if fully written to SD card, mod_sd_is_open_AW should return 1 if open
+      mod_sd_write_AW(sd_write_buf,sd_bytes_merged);                       // write to SD card what didn't get written as a full buffer write
+      sd_buffer_sample_count=0;
       sd_bytes_merged = 0;
   }
   else{
       printf("No flush of data to sd card needed\r\n");
   }
+}
+
+void stop_recording_task(void){
+  if (!on_recording_flag && !mod_sd_is_open_AW()){
+      printf("Already stopped recording. \r\n");
+      return;
+  }
+  on_recording_flag = false;                                                // set recording flag to false so Keller task stops after current cycle
+  flush_sd_before_close();                                                  // write any partial data
+  mod_sd_close_and_unmount_AW();                                            // close file and unmount sd
+}
+
+void start_recording_task(void){
+  if (on_recording_flag){                                                   // if already recording, nothing to change or do
+      printf("Already recording: %s \r\n", mod_sd_get_filename_AW());
+      return;
+  }
+  if (!mod_sd_is_open_AW()){                                                // is SD was closed, remount and open a new file
+      mod_sd_remount_and_open_AW();
+  }
+  on_recording_flag = true;                                                 // allow Keller task to resume recording and writing to buffer for SD
+  printf("Recording started: %s, writing to SD when LED 1 turns blue\r\n", mod_sd_get_filename_AW());
+}
+
+void single_read_task(void){
+  single_read_flag = true;                                                  // Keller task can run for one cycle now, and the retireve task will print and reset flag when complete
 }
 
 void button_task_create(void) {
@@ -442,8 +490,7 @@ void button_task(void *p_arg) {
   RTOS_ERR err;
   while (1) {
       if (GPIO_PinInGet(gpioPortC, 8) == 0 && mod_sd_is_open_AW()) {
-          flush_sd_before_close();
-          mod_sd_close_and_unmount_AW();
+          stop_recording_task();                                            // calls flush_sd_before_close and mod_sd_close_and_unmount_AW inside this task, also sets recording flag to false
       }
       OSTimeDly(50, OS_OPT_TIME_DLY, &err); // poll every 50ms
 

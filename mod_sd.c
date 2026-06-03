@@ -260,127 +260,138 @@ void mod_sd_create_init_task()
 
 // AW added the following task:
 static void mod_sd_open_AW(void){
-  UINT bw;                                   // bw (bytes written) so f_write fills this in after the write
-  TCHAR file_name[16];                       // array for the UTF-16 encoded file path
-  FILINFO fno;                                // FatFS file info struct
+  UINT bw;                                                                      // bw (bytes written) so f_write fills this in after the write
+  TCHAR file_name[16];                                                          // array for the UTF-16 encoded file path
+  FILINFO fno;                                                                  // FatFS file info struct
 
   int file_num;
-  for (file_num = 0 ; file_num <= 9999; file_num++){ // find placement to create new file
-      snprintf(name_buf,sizeof(name_buf),"data_%04d.csv",file_num); // build filename string, %04d zero-pads the number
-      mod_sd_ff_encode(name_buf,file_name,strlen(name_buf)); // convert string from char to TCHAR for FatFS
+  for (file_num = 0 ; file_num <= 9999; file_num++){                            // find placement to create new file
+      snprintf(name_buf,sizeof(name_buf),"data_%04d.csv",file_num);             // build filename string, %04d zero-pads the number
+      mod_sd_ff_encode(name_buf,file_name,strlen(name_buf));                    // convert string from char to TCHAR for FatFS
       FRESULT fr = f_stat(file_name,&fno);
       if(fr==FR_NO_FILE){
-          break; // found placement to create new file, exit loop with file_num being set to that number
+          break;                                                                // found placement to create new file, exit loop with file_num being set to that number
       }
   }
 
   if(file_num>9999){
       printf("SD error:max file count has been reached \r\n");
-      GPIO_PinOutClear(gpioPortH,10); // turn on led to RED: LED is active low (driving low turns it on)
+      GPIO_PinOutClear(gpioPortH,10);                                           // turn on led to RED: LED is active low (driving low turns it on)
       return;
   }
 
-  FRESULT fres = f_open(&fp, file_name, FA_CREATE_NEW | FA_WRITE); // create file
+  FRESULT fres = f_open(&fp, file_name, FA_CREATE_NEW | FA_WRITE);              // create file
 
   if(fres==FR_OK){
-            GPIO_PinOutClear(gpioPortH,11); // turn on led to GREEN: LED is active low (driving low turns it on)
-            sd_file_open = 1;               // set flag s.t. fp is now valid and writing is allowed
+            GPIO_PinOutClear(gpioPortH,11);                                     // turn on led to GREEN: LED is active low (driving low turns it on)
+            sd_file_open = 1;                                                   // set flag s.t. fp is now valid and writing is allowed
             f_write(&fp,"MOD LAB: Keller pressure sensor data\r\n",sizeof("MOD LAB: Keller pressure sensor data\r\n") - 1,&bw); // writes bytes to the file, bw receives the actual bytes written
             f_write(&fp, "Pressure [bar],Temperature [F],time [sec]\r\n", sizeof("Pressure [bar],Temperature [F],time [sec]\r\n") - 1, &bw);
             printf("File created: %s \r\n", name_buf);
   }
   else {
       printf("File open has failed: %d\r\n",fres);
-      GPIO_PinOutClear(gpioPortH,10); // turn on led to RED: LED is active low (driving low turns it on)
+      GPIO_PinOutClear(gpioPortH,10);                                           // turn on led to RED: LED is active low (driving low turns it on)
   }
 }
 
 void mod_sd_close_and_unmount_AW(void) {
     RTOS_ERR err;
-    OSMutexPend(&sd_mutex, 0, OS_OPT_PEND_BLOCKING, NULL, &err); // acquire mutex
+    OSMutexPend(&sd_mutex, 0, OS_OPT_PEND_BLOCKING, NULL, &err);                // acquire mutex
 
     if (!sd_file_open) {
-        OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err); // protecting fp so write and close cant overlap
+        OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err);                         // protecting fp so write and close can't overlap
         printf("SD card already unmounted.\r\n");
         return;
     }
-
-    sd_file_open = 0; // clear flag now that mutex is acquired
-    OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err); // release the lock
+    sd_write_prev = 0; // reset for next "first write" of recording starting
+    sd_file_open = 0;                                                           // clear flag now that mutex is acquired
+    OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err);                             // release the lock
     f_close(&fp);
-    f_mount(NULL, (TCHAR*)"", 0); // unmount file system
-    GPIO_PinOutSet(gpioPortH, 11); // turn off LED
-    GPIO_PinOutSet(gpioPortH, 15); // turn off LED
+    f_mount(NULL, (TCHAR*)"", 0);                                               // unmount file system
+    GPIO_PinOutSet(gpioPortH, 11);                                              // turn off LED
+    GPIO_PinOutSet(gpioPortH, 15);                                              // turn off LED
     printf("SD card safe to remove.\r\n");
+}
+
+void mod_sd_remount_and_open_AW(void){
+  FRESULT res = f_mount(&fat_fs,(TCHAR*)"",1);                                  // remount file system
+  if (res==FR_OK){
+      printf("FAT fs remounted\r\n");
+      mod_sd_open_AW();                                                         // open next available file name
+  }
+  else {
+      printf("Remount failed: %d\r\n", res);
+  }
 }
 
 bool mod_sd_write_AW(char *buf, int len){
   RTOS_ERR err;
   UINT bw;
   bool successful_write = false;
-  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);  // acquire sd_mutex lock before touching fp, protecting fp so write and close cant overlap
+  OSMutexPend(&sd_mutex,0,OS_OPT_PEND_BLOCKING,NULL,&err);                      // acquire sd_mutex lock before touching fp, protecting fp so write and close cant overlap
 
   if(sd_file_open){
-      FRESULT fres = f_write(&fp, buf, len, &bw); // only write to sd if fp is valid
-      FRESULT fsync_res = f_sync(&fp);            // flush to SD card to protect against power loss before unmount
+      FRESULT fres = f_write(&fp, buf, len, &bw);                               // only write to sd if fp is valid
+      FRESULT fsync_res = f_sync(&fp);                                          // flush to SD card to protect against power loss before unmount
 
-      if(fres != FR_OK || fsync_res != FR_OK){ // if write or flush failed
-          if(sd_write_prev){ // if prev write successful,
-              sd_write_prev = 0; // note that the new write was a failure
-              GPIO_PinOutSet(gpioPortH, 15);    // turn LED off, only on transition from ok to failed
+      if(fres != FR_OK || fsync_res != FR_OK){                                  // if write or flush failed
+          if(sd_write_prev){                                                    // if previous write successful,
+              sd_write_prev = 0;                                                // note that the new write was a failure
+              GPIO_PinOutSet(gpioPortH, 15);                                    // turn LED off, only on transition from ok to failed
               printf("SD write error: %d\r\n", fres);
           }
       }
-      else { // write and sync succeeded
+      else {                                                                    // write and sync succeeded
           if (f_size(&fp)>= SD_FILE_MAX_SIZE){
                         f_close(&fp);
                         sd_file_open = 0;
-                        mod_sd_open_AW(); // find next file name and open it
+                        mod_sd_open_AW();                                       // find next file name and open it
                         printf("File size limit reached, opened: %s\r\n", name_buf);
                     }
           if(!sd_write_prev){
-              sd_write_prev = 1;                // if previous write was a failure, we need to turn the LED back on since now successful
-              GPIO_PinOutClear(gpioPortH, 15);  // turn LED on, only on transition from failed to ok
+              sd_write_prev = 1;                                                 // if previous write was a failure, we need to turn the LED back on since now successful
+              GPIO_PinOutClear(gpioPortH, 15);                                   // turn LED on, only on transition from failed to ok
           }
           successful_write=true;
       }
   }
-  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);             // release sd_mutex lock, protecting fp so write and close cant overlap
+  OSMutexPost(&sd_mutex,OS_OPT_POST_NONE,&err);                                  // release sd_mutex lock, protecting fp so write and close cant overlap
   return successful_write;
 }
 
 uint8_t mod_sd_is_open_AW(void) { return sd_file_open; }
 
 void mod_sd_enable_hardware_AW(void) {
-  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull, 1); // LED, active low, starts OFF
-  GPIO_PinModeSet(gpioPortH, 10, gpioModePushPull, 1); // LED, active low, starts OFF
-  GPIO_PinModeSet(gpioPortH, 15, gpioModePushPull, 1); // LED, active low, starts OFF
-  GPIO_PinModeSet(gpioPortC, 8, gpioModeInputPull, 1); // BTN0, pull-up so reads high at rest
+  GPIO_PinModeSet(gpioPortH, 11, gpioModePushPull, 1);                           // LED, active low, starts OFF
+  GPIO_PinModeSet(gpioPortH, 10, gpioModePushPull, 1);                           // LED, active low, starts OFF
+  GPIO_PinModeSet(gpioPortH, 15, gpioModePushPull, 1);                           // LED, active low, starts OFF
+  GPIO_PinModeSet(gpioPortC, 8, gpioModeInputPull, 1);                           // BTN0, pull-up so reads high at rest
 }
 
 void mod_sd_seed_rtc_AW(void){
   sl_sleeptimer_date_t date;
   sl_sleeptimer_build_datetime(&date,1980,MONTH_JANUARY,1,0,0,0,0);
-  sl_sleeptimer_set_datetime(&date);  // seed the MCU clock with the default time
+  sl_sleeptimer_set_datetime(&date);                                             // seed the MCU clock with the default time
 }
 
-const char* mod_sd_get_filename_AW(void) {return name_buf;} // returns name of file open on sd card
+const char* mod_sd_get_filename_AW(void) {return name_buf;}                       // returns name of file open on sd card
 
 void mod_sd_log_set_time_AW(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec){
   FIL log_fp;
   UINT bw;
   char log_buf[64];
-  uint32_t ticks = sl_sleeptimer_get_tick_count(); // tick count at moment set_time was installed
+  uint32_t ticks = sl_sleeptimer_get_tick_count();                               // tick count at moment set_time was installed
 
   TCHAR log_file_name[16];
   mod_sd_ff_encode("time_log.csv",log_file_name, strlen("time_log.csv"));
-  FRESULT fres = f_open(&log_fp,log_file_name, FA_OPEN_ALWAYS | FA_WRITE); // create time log file if doesnt already exist
+  FRESULT fres = f_open(&log_fp,log_file_name, FA_OPEN_ALWAYS | FA_WRITE);      // create time log file if doesnt already exist
   if (fres==FR_OK){
-      if (f_size(&log_fp)==0){ // if file header doesnt already exist, make it
+      if (f_size(&log_fp)==0){                                                  // if file header doesnt already exist, make it
           f_write(&log_fp, "data_file,real_world_time,ticks_at_set_time\r\n",strlen("data_file,real_world_time,ticks_at_set_time\r\n"), &bw);
       }
 
-      f_lseek(&log_fp,f_size(&log_fp)); // seek to end so new entries are appended and not verwitten
+      f_lseek(&log_fp,f_size(&log_fp));                                          // seek to end so new entries are appended
 
       snprintf(log_buf,sizeof(log_buf),"%s,%04u-%02u-%02u %02u:%02u:%02u,%lu\r\n",mod_sd_get_filename_AW(), year, month, day, hour, min, sec, ticks);
       f_write(&log_fp,log_buf,strlen(log_buf),&bw);

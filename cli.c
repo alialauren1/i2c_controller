@@ -31,6 +31,8 @@
 #include "mod_sd.h"
 #include "sl_sleeptimer.h"
 
+#include "task.h"
+
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
@@ -55,6 +57,10 @@ void sd_close_and_unmount_cmd(sl_cli_command_arg_t *arguments);
 void sd_set_time_cmd(sl_cli_command_arg_t *arguments);
 void get_time_cmd(sl_cli_command_arg_t *arguments);
 void get_open_file_name_cmd(sl_cli_command_arg_t *arguments);
+
+void stop_recording_cmd(sl_cli_command_arg_t *arguments);
+void start_recording_cmd(sl_cli_command_arg_t *arguments);
+void read_pressure_cmd(sl_cli_command_arg_t *arguments);
 
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
@@ -132,6 +138,24 @@ static const sl_cli_command_info_t cmd__get_open_file_name_cmd = \
                  " ",
                  { SL_CLI_ARG_END });
 
+static const sl_cli_command_info_t cmd__stop_recording = \
+  SL_CLI_COMMAND(stop_recording_cmd,
+                 "stop data collection, flush and close SD card",
+                 "",
+                 { SL_CLI_ARG_END, });
+
+static const sl_cli_command_info_t cmd__start_recording = \
+  SL_CLI_COMMAND(start_recording_cmd,
+                 "start data collection, opens new SD file",
+                 "",
+                 { SL_CLI_ARG_END, });
+
+static const sl_cli_command_info_t cmd__read_pressure = \
+  SL_CLI_COMMAND(read_pressure_cmd,
+                 "print one pressure value to console",
+                 "",
+                 { SL_CLI_ARG_END, });
+
 static sl_cli_command_entry_t a_table[] = {
   { "echo_str", &cmd__echostr, false },
   { "echo_int", &cmd__echoint, false },
@@ -145,6 +169,9 @@ static sl_cli_command_entry_t a_table[] = {
   { "set_time", &cmd__sd_set_time, false },
   { "get_time", &cmd__get_time, false },
   { "get_file_name", &cmd__get_open_file_name_cmd, false },
+  { "stop_recording",  &cmd__stop_recording,  false },   // stop data collection
+  { "start_recording", &cmd__start_recording, false },   // start data collection
+  { "read_pressure",   &cmd__read_pressure,   false },   // read one pressure value
   { NULL, NULL, false },
 };
 
@@ -487,6 +514,32 @@ void get_open_file_name_cmd(sl_cli_command_arg_t *arguments){
       printf("No file is open");
   }
 }
+/****************************************************************************//**
+ * Callback (s) for stop/start recording
+ *
+ * The commands are used to start or stop the data collection of the sensors and the recording.
+ ******************************************************************************/
+void stop_recording_cmd(sl_cli_command_arg_t *arguments) {
+    (void)arguments;          // no arguments needed
+    stop_recording_task();
+}
+
+void start_recording_cmd(sl_cli_command_arg_t *arguments) {
+    (void)arguments;          // no arguments needed
+    start_recording_task();
+}
+
+/****************************************************************************//**
+ * Callback for read_pressure_cmd
+ *
+ * The command is used to read a single sensor value from the keller get pressure task
+ ******************************************************************************/
+
+void read_pressure_cmd(sl_cli_command_arg_t *arguments) {
+    (void)arguments;          // no arguments needed
+    single_read_task();
+}
+
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
@@ -506,11 +559,11 @@ void cli_app_init(void)
   printf("---------------------------------\r\n");
   printf("Started CLI Micrium OS\r\n");
 
-  printf("Useful CLI Options:\r\n");
-  printf("- set_time to set the time of the sd card\r\n");
-  printf("- get_time to get the current system time\r\n");
-  printf("- get_file_name to see what file we are writing to\r\n");
-  printf("- sd_close_unmount to close and unmount the sd card to prevent corruption\r\n\r\n");
+//  printf("Useful CLI Options:\r\n");
+//  printf("- set_time to set the time of the sd card\r\n");
+//  printf("- get_time to get the current system time\r\n");
+//  printf("- get_file_name to see what file we are writing to\r\n");
+//  printf("- sd_close_unmount to close and unmount the sd card to prevent corruption\r\n\r\n");
 
   printf("Instructions:\r\n");
   printf("1. Please wait for the following initialization messages: successful Fat FS mount, file creation, and sensor found\r\n");
