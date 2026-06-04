@@ -402,10 +402,14 @@ void mod_sd_log_set_time_AW(uint16_t year, uint8_t month, uint8_t day, uint8_t h
 }
 
 void mod_sd_load_config_AW(void){
-  FRESULT fres = f_open(&cfg_fp,(TCHAR*)"config.cfg", FA_READ);                          // try to open any existing configuration file
+
+  TCHAR cfg_file_name[16];
+  mod_sd_ff_encode("config.cfg", cfg_file_name, strlen("config.cfg"));
+
+  FRESULT fres = f_open(&cfg_fp,cfg_file_name, FA_READ);                          // try to open any existing configuration file
 
   if (fres == FR_NO_FILE){                                                        // no configuration file exists, make one with default values
-      fres = f_open(&cfg_fp, (TCHAR*)"config.cfg", FA_WRITE | FA_CREATE_NEW);
+      fres = f_open(&cfg_fp, cfg_file_name, FA_WRITE | FA_CREATE_NEW);
       if (fres == FR_OK) {
                   char line[32];
                   UINT bw;
