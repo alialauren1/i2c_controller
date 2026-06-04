@@ -326,14 +326,12 @@ void keller_get_pressure_task(void *p_arg)
           case STATE_DELAY: {
               uint32_t now = sl_sleeptimer_get_tick_count();
               if ((uint32_t)(now - cycle_start) >= total_interval_ticks) {
-                  if (on_recording_flag){                                       // if recording flag is on, then move on to write/trigger state
+                  if (on_recording_flag || single_read_flag){                                       // if recording flag is on, then move on to write/trigger state
                       state = STATE_WRITE;
                   }
                   else {
-                      while (!on_recording_flag && !single_read_flag){
-                          OSTimeDly(500, OS_OPT_TIME_DLY, &delay_err);         // yield to CPU every 500 ms so other tasks can run
-                      }
-                      state = STATE_WRITE;
+                      OSTaskSuspend(NULL, &delay_err);  // park; woken by start_recording_task or single_read_task
+                      state = STATE_WRITE;              // always run one cycle on wake
                   }
 
               }
@@ -380,11 +378,6 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
 
   while (1) {
 
-      if (!on_recording_flag && !single_read_flag){
-          OSTimeDly(500, OS_OPT_TIME_DLY, &err);         // yield to CPU every 500 ms so other tasks can run
-          continue;
-      }
-
       // drain circular buffer and printf
       keller_sample_t sample;
 
@@ -395,7 +388,6 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
           uint64_t t_sec_frac  = ((sample.t_ticks % freq) * 1000000) / freq;
 
           if (single_read_flag){
-              printf("DEBUG: in retrieve P from buf task, system thinks single read flag is 1 \r\n");
               printf("P: %c%03d.%03d bar, T: %03d.%02d F, t: %02lu%06lu.%06lu\r\n",
                                    (sample.p_mbar<0 ? '-':' '),
                                    (int)(abs(sample.p_mbar) / 1000),
@@ -406,6 +398,9 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
                                    (uint32_t)(t_sec_whole % 1000000),
                                    (uint32_t)t_sec_frac);
               single_read_flag = false; // clear flag
+              if (!on_recording_flag){
+                  OSTaskSuspend(NULL, &err);   // single read complete, park until next resume
+              }
           }
 
           if (on_recording_flag && mod_sd_is_open_AW()){                                                    // write to SD only when recording
@@ -426,10 +421,10 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
                         sd_bytes_merged += len;                                                             // bytes written to data_array_for_sd_card
 
                         if (sd_buffer_sample_count >= SD_SAMPLES_PER_WRITE){                                 // accumulate sample into buffer
-                            uint32_t write_start = sl_sleeptimer_get_tick_count();
+//                            uint32_t write_start = sl_sleeptimer_get_tick_count();
                             bool write_ok = mod_sd_write_AW(sd_write_buf,sd_buffer_sample_count*len);
-                            uint32_t write_end = sl_sleeptimer_get_tick_count();
-                            uint32_t write_ms = sl_sleeptimer_tick_to_ms(write_end - write_start);
+//                            uint32_t write_end = sl_sleeptimer_get_tick_count();
+//                            uint32_t write_ms = sl_sleeptimer_tick_to_ms(write_end - write_start);
                             if (!write_ok){
                                 printf("Write failed for buffer \r\n");
                             }
@@ -456,6 +451,7 @@ static void flush_sd_before_close(void){
 }
 
 void stop_recording_task(void){
+  RTOS_ERR err;
   if (!on_recording_flag && !mod_sd_is_open_AW()){
       printf("Already stopped recording. \r\n");
       return;
@@ -463,9 +459,15 @@ void stop_recording_task(void){
   on_recording_flag = false;                                                // set recording flag to false so Keller task stops after current cycle
   flush_sd_before_close();                                                  // write any partial data
   mod_sd_close_and_unmount_AW();                                            // close file and unmount sd
+  OSTaskSuspend(&retrieve_from_buf_tcb, &err);
+  OSTaskSuspend(&button_tcb, &err);
+
+  keller_sample_t discard;
+  while (keller_buffer_retrieve(&discard)) {}       // drain circular buffer, discard stale samples
 }
 
 void start_recording_task(void){
+  RTOS_ERR err;
   if (on_recording_flag){                                                   // if already recording, nothing to change or do
       printf("Already recording: %s \r\n", mod_sd_get_filename_AW());
       return;
@@ -474,12 +476,19 @@ void start_recording_task(void){
       mod_sd_remount_and_open_AW();
   }
   on_recording_flag = true;                                                 // allow Keller task to resume recording and writing to buffer for SD
+  OSTaskResume(&button_tcb, &err);
+  OSTaskResume(&retrieve_from_buf_tcb, &err);
+  OSTaskResume(&keller_tcb, &err);
   printf("Recording started: %s, writing to SD when LED 1 turns blue\r\n", mod_sd_get_filename_AW());
 }
 
 void single_read_task(void){
-  printf("DEBUG: single_read_task called\r\n");
+  RTOS_ERR err;
   single_read_flag = true;                                                  // Keller task can run for one cycle now, and the retireve task will print and reset flag when complete
+  if (!on_recording_flag){
+      OSTaskResume(&retrieve_from_buf_tcb, &err);   // wake retrieve so it can print the result
+      OSTaskResume(&keller_tcb, &err);
+  }
 }
 
 void button_task_create(void) {
@@ -504,11 +513,6 @@ void button_task(void *p_arg) {
   (void)p_arg;
   RTOS_ERR err;
   while (1) {
-
-      if (!on_recording_flag){
-          OSTimeDly(500, OS_OPT_TIME_DLY, &err);         // yield to CPU every 500 ms so other tasks can run
-          continue;
-      }
 
       if (GPIO_PinInGet(gpioPortC, 8) == 0 && mod_sd_is_open_AW()) {
           stop_recording_task();                                            // calls flush_sd_before_close and mod_sd_close_and_unmount_AW inside this task, also sets recording flag to false
