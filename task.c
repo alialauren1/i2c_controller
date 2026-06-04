@@ -52,8 +52,10 @@
 #define SAMPLE_INTERVAL_MS  8
 #define TOTAL_INTERVAL_MS   10 // per sample
 
-#define SAMPLE_RATE_SEC 1 // minimum allowed is 0.01 seconds because that will be one sample
-#define AVG_SAMPLE_COUNT ((SAMPLE_RATE_SEC*1000)/TOTAL_INTERVAL_MS) // amount of samples that we use to average before printing
+#define AVG_SAMPLE_COUNT_DEFAULT ((1000 / SAMPLE_RATE_HZ_DEFAULT) / TOTAL_INTERVAL_MS) // amnt of samples used to avg, calculated from sample_rate_hz after config loads
+
+static uint32_t sample_rate_hz  = SAMPLE_RATE_HZ_DEFAULT;    // default, overwritten by config file on startup
+static uint32_t avg_sample_count = AVG_SAMPLE_COUNT_DEFAULT;  // default, recalculated by apply_config_task() after config loads
 
 typedef enum {
     STATE_WRITE,
@@ -149,6 +151,12 @@ void button_task(void *p_arg); // forward declaration
 void err_msg_task(void *p_arg); // forward declaration
 //-------------------------------------------------------------------------------------------------------------
 
+void config_task(unsigned int rate_hz){
+  if (rate_hz<1 || rate_hz>100) rate_hz=1;                              // allowable range is 1 Hz (1 s) to 100 Hz (0.01 sec)
+  sample_rate_hz = rate_hz;
+  avg_sample_count = ((1000 / sample_rate_hz) / TOTAL_INTERVAL_MS);
+}
+
 void keller_get_pressure_task_create(void) {
   RTOS_ERR err;
 
@@ -189,7 +197,7 @@ void keller_get_pressure_task(void *p_arg)
   bool data_processed = false;
   int32_t pressure_sum = 0;
   int32_t temp_sum = 0;
-  int avg_sample_counter = 0;
+  uint32_t avg_sample_counter = 0;
   uint8_t raw[5];
   uint64_t t_ticks = 0;
   uint64_t t_ticks_mid = 0;
@@ -259,12 +267,12 @@ void keller_get_pressure_task(void *p_arg)
                           pressure_sum += p_mbar;
                           temp_sum += t_centi;
                           avg_sample_counter++;
-                          if (avg_sample_counter == (AVG_SAMPLE_COUNT+1)/2){            // integer division truncates so the +1 protects result if sample count is 1
+                          if (avg_sample_counter == (avg_sample_count+1)/2){            // integer division truncates so the +1 protects result if sample count is 1
                                t_ticks_mid = t_ticks;                                   // store the time halfway through the averaging of samples
                           }
-                          if (avg_sample_counter == AVG_SAMPLE_COUNT) {
-                              if (keller_buffer_store(pressure_sum/AVG_SAMPLE_COUNT,
-                                                  temp_sum/AVG_SAMPLE_COUNT,
+                          if (avg_sample_counter == avg_sample_count) {
+                              if (keller_buffer_store(pressure_sum/(int32_t)avg_sample_count,
+                                                  temp_sum/(int32_t)avg_sample_count,
                                                   t_ticks_mid)){
                               }
                               else {
@@ -372,6 +380,11 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
 
   while (1) {
 
+      if (!on_recording_flag && !single_read_flag){
+          OSTimeDly(500, OS_OPT_TIME_DLY, &err);         // yield to CPU every 500 ms so other tasks can run
+          continue;
+      }
+
       // drain circular buffer and printf
       keller_sample_t sample;
 
@@ -382,6 +395,7 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
           uint64_t t_sec_frac  = ((sample.t_ticks % freq) * 1000000) / freq;
 
           if (single_read_flag){
+              printf("DEBUG: in retrieve P from buf task, system thinks single read flag is 1 \r\n");
               printf("P: %c%03d.%03d bar, T: %03d.%02d F, t: %02lu%06lu.%06lu\r\n",
                                    (sample.p_mbar<0 ? '-':' '),
                                    (int)(abs(sample.p_mbar) / 1000),
@@ -464,6 +478,7 @@ void start_recording_task(void){
 }
 
 void single_read_task(void){
+  printf("DEBUG: single_read_task called\r\n");
   single_read_flag = true;                                                  // Keller task can run for one cycle now, and the retireve task will print and reset flag when complete
 }
 
@@ -489,6 +504,12 @@ void button_task(void *p_arg) {
   (void)p_arg;
   RTOS_ERR err;
   while (1) {
+
+      if (!on_recording_flag){
+          OSTimeDly(500, OS_OPT_TIME_DLY, &err);         // yield to CPU every 500 ms so other tasks can run
+          continue;
+      }
+
       if (GPIO_PinInGet(gpioPortC, 8) == 0 && mod_sd_is_open_AW()) {
           stop_recording_task();                                            // calls flush_sd_before_close and mod_sd_close_and_unmount_AW inside this task, also sets recording flag to false
       }

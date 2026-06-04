@@ -33,7 +33,7 @@
 #include "ff.h"
 #include "diskio.h"
 #include "string.h"
-//#include "task.h"
+#include "task.h"
 //#include "semphr.h"
 #include <stdio.h>
 #include "app.h"
@@ -55,6 +55,7 @@ OS_SEM sync_sem;
 static volatile FATFS fat_fs;
 
 static FIL fp;  // AW added
+static FIL cfg_fp;
 static OS_MUTEX sd_mutex;         // AW, protecting fp so write and close cant overlap
 static volatile uint8_t sd_file_open = 0; // AW, 0 for when not safe to write, 1 for when is safe to write
 static volatile uint8_t sd_write_prev = 0;
@@ -199,6 +200,7 @@ void mod_sd_init_task()
   if(res == (FRESULT)RES_OK)
   {
       printf("FAT fs mounted successfully.\r\n");
+      mod_sd_load_config_AW();
       mod_sd_open_AW();
   }
   else
@@ -399,3 +401,45 @@ void mod_sd_log_set_time_AW(uint16_t year, uint8_t month, uint8_t day, uint8_t h
   }
 }
 
+void mod_sd_load_config_AW(void){
+  FRESULT fres = f_open(&cfg_fp,(TCHAR*)"config.cfg", FA_READ);                          // try to open any existing configuration file
+
+  if (fres == FR_NO_FILE){                                                        // no configuration file exists, make one with default values
+      fres = f_open(&cfg_fp, (TCHAR*)"config.cfg", FA_WRITE | FA_CREATE_NEW);
+      if (fres == FR_OK) {
+                  char line[32];
+                  UINT bw;
+                  int len = snprintf(line, sizeof(line), "sample_rate_hz=%u\n", SAMPLE_RATE_HZ_DEFAULT);  // write default sample rate
+                  f_write(&cfg_fp, line, len, &bw);
+                  f_close(&cfg_fp);
+                  config_task(SAMPLE_RATE_HZ_DEFAULT);                                            // apply default to runtime variables
+                  printf("Config file created with defaults: config.cfg\r\n");
+      }
+      else {
+                  config_task(SAMPLE_RATE_HZ_DEFAULT);                                            // file create failed, still apply default
+                  printf("Config create failed: %d, using default.\r\n", fres);
+      }
+  }
+  else if (fres == FR_OK){                                                        // configuration file was found so read it
+      char cfg_buf[64];
+      UINT br;
+      f_read(&cfg_fp, cfg_buf, sizeof(cfg_buf) - 1, &br);                         // read file contents into buffer
+      f_close(&cfg_fp);
+      cfg_buf[br] = '\0';                                                         // null-terminate so sscanf works correctly
+
+      unsigned int parsed_hz = SAMPLE_RATE_HZ_DEFAULT;
+
+      if (sscanf(cfg_buf, "sample_rate_hz=%u", &parsed_hz) == 1) {
+          config_task(parsed_hz);                                       // apply parsed value to runtime variables
+          printf("Config loaded: sample_rate_hz=%u\r\n", parsed_hz);
+      } else {
+          config_task(SAMPLE_RATE_HZ_DEFAULT);                                    // parse failed, fall back to default
+          printf("Config parse error, using default.\r\n");
+      }
+  }
+  else {
+     config_task(SAMPLE_RATE_HZ_DEFAULT);                                         // unexpected open error, fall back to default
+     printf("Config open failed: %d, using default.\r\n", fres);
+  }
+
+}
