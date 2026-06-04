@@ -8,7 +8,7 @@
 #ifndef TASK_H_
 #define TASK_H_
 
-#define SAMPLE_RATE_HZ_DEFAULT  1 // default, allowable range is 1 Hz (1 s) to 100 Hz (0.01 sec)
+#define SAMPLE_RATE_HZ_DEFAULT  10 // default, allowable range is 1 Hz (1 s) to 100 Hz (0.01 sec)
 
 void keller_get_pressure_task_create(void);
 void retrieve_pressure_from_buffer_task_create(void);

@@ -434,6 +434,20 @@ void mod_sd_load_config_AW(void){
       unsigned int parsed_hz = SAMPLE_RATE_HZ_DEFAULT;
 
       if (sscanf(cfg_buf, "sample_rate_hz=%u", &parsed_hz) == 1) {
+          if (parsed_hz < 1 || parsed_hz > 100){
+              printf("Config sample rate invalid: sample_rate_hz=%u out of range (1-100), using default.\r\n",parsed_hz);
+              parsed_hz = SAMPLE_RATE_HZ_DEFAULT;
+
+              FRESULT rewrite = f_open(&cfg_fp, cfg_file_name, FA_WRITE | FA_CREATE_ALWAYS); // rewrite the config file with the corrected value
+              if (rewrite == FR_OK) {
+                char line[32];
+                UINT bw;
+                int len = snprintf(line, sizeof(line), "sample_rate_hz=%u\n", parsed_hz);
+                f_write(&cfg_fp, line, len, &bw);
+                f_close(&cfg_fp);
+                printf("Config file corrected to default.\r\n");
+            }
+          }
           config_task(parsed_hz);                                       // apply parsed value to runtime variables
           printf("Config loaded: sample_rate_hz=%u\r\n", parsed_hz);
       } else {
