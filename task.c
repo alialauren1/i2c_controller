@@ -98,6 +98,10 @@ static OS_TCB  err_tcb;
 volatile bool on_recording_flag = true; // on/off recording flag
 volatile bool single_read_flag = false; // read one set of values
 
+static int32_t  pressure_sum       = 0;
+static int32_t  temp_sum           = 0;
+static uint32_t avg_sample_counter = 0;
+
 //For Keller_get_pressure_task
 static bool keller_p_sensor_init(void) // Safety formality: checks if sensor responds to its address being called
 { // Send a zero-length write to confirm the sensor is on the bus
@@ -153,8 +157,22 @@ void err_msg_task(void *p_arg); // forward declaration
 
 void config_task(unsigned int rate_hz){
   if (rate_hz<1 || rate_hz>100) rate_hz=1;                              // allowable range is 1 Hz (1 s) to 100 Hz (0.01 sec)
-  sample_rate_hz = rate_hz;
-  avg_sample_count = ((1000 / sample_rate_hz) / TOTAL_INTERVAL_MS);
+  if (rate_hz != sample_rate_hz) {          // only act if rate is actually changing
+      if (avg_sample_counter > 0) {
+          keller_buffer_store(pressure_sum / (int32_t)avg_sample_counter,
+                              temp_sum    / (int32_t)avg_sample_counter,
+                              sl_sleeptimer_get_tick_count64());
+      }
+      sample_rate_hz     = rate_hz;
+      avg_sample_count   = ((1000 / sample_rate_hz) / TOTAL_INTERVAL_MS);
+      avg_sample_counter = 0;
+      pressure_sum       = 0;
+      temp_sum           = 0;
+  }
+}
+
+unsigned int get_sample_rate_hz(void){
+  return sample_rate_hz;
 }
 
 void keller_get_pressure_task_create(void) {
@@ -195,9 +213,6 @@ void keller_get_pressure_task(void *p_arg)
 
   bool first_loop = true;
   bool data_processed = false;
-  int32_t pressure_sum = 0;
-  int32_t temp_sum = 0;
-  uint32_t avg_sample_counter = 0;
   uint8_t raw[5];
   uint64_t t_ticks = 0;
   uint64_t t_ticks_mid = 0;
@@ -421,12 +436,9 @@ void retrieve_pressure_from_buffer_task(void *p_arg) {
                         sd_bytes_merged += len;                                                             // bytes written to data_array_for_sd_card
 
                         if (sd_buffer_sample_count >= SD_SAMPLES_PER_WRITE){                                 // accumulate sample into buffer
-//                            uint32_t write_start = sl_sleeptimer_get_tick_count();
                             bool write_ok = mod_sd_write_AW(sd_write_buf,sd_buffer_sample_count*len);
-//                            uint32_t write_end = sl_sleeptimer_get_tick_count();
-//                            uint32_t write_ms = sl_sleeptimer_tick_to_ms(write_end - write_start);
                             if (!write_ok){
-                                printf("Write failed for buffer \r\n");
+                                printf("Write failed\r\n");
                             }
                             sd_buffer_sample_count=0;                                                       // reset buffer sample counter after write
                             sd_bytes_merged = 0;                                                            // reset byte counter after write
@@ -468,13 +480,21 @@ void stop_recording_task(void){
 
 void start_recording_task(void){
   RTOS_ERR err;
-  if (on_recording_flag){                                                   // if already recording, nothing to change or do
-      printf("Already recording: %s \r\n", mod_sd_get_filename_AW());
+  if (on_recording_flag){
+      if (mod_sd_write_error_AW()){
+          printf("Writes failing — type stop_recording, reinsert card, then start_recording.\r\n");
+      } else {
+          printf("Already recording: %s\r\n", mod_sd_get_filename_AW());
+      }
       return;
   }
-  if (!mod_sd_is_open_AW()){                                                // is SD was closed, remount and open a new file
-      mod_sd_remount_and_open_AW();
+  if (!mod_sd_is_open_AW()){
+      if (!mod_sd_remount_and_open_AW()){
+          printf("Failed to start recording — maybe SD not ready or try stop recording and start again.\r\n");
+          return;
+      }
   }
+  mod_sd_load_config_AW();
   on_recording_flag = true;                                                 // allow Keller task to resume recording and writing to buffer for SD
   OSTaskResume(&button_tcb, &err);
   OSTaskResume(&retrieve_from_buf_tcb, &err);

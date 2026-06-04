@@ -20,5 +20,6 @@ void start_recording_task(void);  // resume data collection, open new SD file
 void single_read_task(void);      // trigger one pressure reading to console
 
 void config_task(unsigned int rate_hz);
+unsigned int get_sample_rate_hz(void);
 
 #endif /* TASK_H_ */

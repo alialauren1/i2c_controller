@@ -47,12 +47,14 @@ uint8_t mod_sd_is_open_AW(void);
 void mod_sd_enable_hardware_AW(void);
 void mod_sd_seed_rtc_AW(void);
 
-void mod_sd_remount_and_open_AW(void);   // remount file system and open next numbered data file
+bool mod_sd_remount_and_open_AW(void);   // remount file system and open next numbered data file
 
 const char* mod_sd_get_filename_AW(void);
 void mod_sd_log_set_time_AW(uint16_t year, uint8_t month, uint8_t day,
                               uint8_t hour, uint8_t min, uint8_t sec);
 
 void mod_sd_load_config_AW(void);
+void mod_sd_write_config_AW(unsigned int rate_hz);
+uint8_t mod_sd_write_error_AW(void);
 
 #endif /* MOD_SD_H_ */

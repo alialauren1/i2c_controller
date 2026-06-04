@@ -62,6 +62,9 @@ void stop_recording_cmd(sl_cli_command_arg_t *arguments);
 void start_recording_cmd(sl_cli_command_arg_t *arguments);
 void read_pressure_cmd(sl_cli_command_arg_t *arguments);
 
+void set_config_cmd(sl_cli_command_arg_t *arguments);
+void get_config_cmd(sl_cli_command_arg_t *arguments);
+
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
  ******************************************************************************/
@@ -156,6 +159,18 @@ static const sl_cli_command_info_t cmd__read_pressure = \
                  "",
                  { SL_CLI_ARG_END, });
 
+static const sl_cli_command_info_t cmd__set_config = \
+  SL_CLI_COMMAND(set_config_cmd,
+                 "set sample rate in Hz (1-100) and save to config.cfg",
+                 "sample_rate_hz (1-100)",
+                 { SL_CLI_ARG_UINT8, SL_CLI_ARG_END, });
+
+static const sl_cli_command_info_t cmd__get_config = \
+  SL_CLI_COMMAND(get_config_cmd,
+                 "print current runtime config values",
+                 "",
+                 { SL_CLI_ARG_END, });
+
 static sl_cli_command_entry_t a_table[] = {
   { "echo_str", &cmd__echostr, false },
   { "echo_int", &cmd__echoint, false },
@@ -172,6 +187,8 @@ static sl_cli_command_entry_t a_table[] = {
   { "stop_recording",  &cmd__stop_recording,  false },   // stop data collection
   { "start_recording", &cmd__start_recording, false },   // start data collection
   { "read_pressure",   &cmd__read_pressure,   false },   // read one pressure value
+  { "set_config", &cmd__set_config, false },
+  { "get_config", &cmd__get_config, false },
   { NULL, NULL, false },
 };
 
@@ -538,6 +555,53 @@ void start_recording_cmd(sl_cli_command_arg_t *arguments) {
 void read_pressure_cmd(sl_cli_command_arg_t *arguments) {
     (void)arguments;          // no arguments needed
     single_read_task();
+}
+
+/****************************************************************************//**
+ * Callback for set_config_cmd
+ *
+ * The command is used to set configurations
+ ******************************************************************************/
+void set_config_cmd(sl_cli_command_arg_t *arguments) {
+    if (sl_cli_get_argument_count(arguments) < 1) {
+        printf("usage: set_config <rate_hz> (1-100)\r\n");
+        return;
+    }
+    uint8_t rate = sl_cli_get_argument_uint8(arguments, 0);
+    if (rate < 1 || rate > 100) {
+        printf("Invalid: %u. Must be 1-100 Hz.\r\n", rate);
+        return;
+    }
+    config_task(rate);
+    printf("Sample rate set: %u Hz\r\n", rate);
+    mod_sd_write_config_AW(rate);  // prints "Config saved" or "Config write failed"
+}
+/****************************************************************************//**
+ * Callback for get_config_cmd
+ *
+ * The command is used to get the configuration info
+ ******************************************************************************/
+
+void get_config_cmd(sl_cli_command_arg_t *arguments) {
+    (void)arguments;
+    printf("Runtime: sample_rate_hz=%u\r\n", get_sample_rate_hz());
+
+    FIL cfg_file;
+    TCHAR cfg_file_name[16];
+    mod_sd_ff_encode("config.cfg", cfg_file_name, strlen("config.cfg"));
+    FRESULT fres = f_open(&cfg_file, cfg_file_name, FA_READ);
+    if (fres == FR_OK) {
+        char cfg_buf[64];
+        UINT br;
+        f_read(&cfg_file, cfg_buf, sizeof(cfg_buf) - 1, &br);
+        f_close(&cfg_file);
+        cfg_buf[br] = '\0';
+        printf("SD file: %s", cfg_buf);
+    } else if (fres == FR_NO_FILE) {
+        printf("SD file: no config.cfg found\r\n");
+    } else {
+        printf("SD file: read failed (%d)\r\n", fres);
+    }
 }
 
 /*******************************************************************************

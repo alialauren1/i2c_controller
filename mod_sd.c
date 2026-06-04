@@ -53,6 +53,7 @@ OS_SEM sync_sem;
 
 
 static volatile FATFS fat_fs;
+static volatile uint8_t sd_write_error = 0;
 
 static FIL fp;  // AW added
 static FIL cfg_fp;
@@ -306,7 +307,8 @@ void mod_sd_close_and_unmount_AW(void) {
         printf("SD card already unmounted.\r\n");
         return;
     }
-    sd_write_prev = 0; // reset for next "first write" of recording starting
+    sd_write_prev = 0;                                                          // reset for next "first write" of recording starting
+    sd_write_error = 0;
     sd_file_open = 0;                                                           // clear flag now that mutex is acquired
     OSMutexPost(&sd_mutex, OS_OPT_POST_NONE, &err);                             // release the lock
     f_close(&fp);
@@ -316,15 +318,18 @@ void mod_sd_close_and_unmount_AW(void) {
     printf("SD card safe to remove.\r\n");
 }
 
-void mod_sd_remount_and_open_AW(void){
-  FRESULT res = f_mount(&fat_fs,(TCHAR*)"",1);                                  // remount file system
-  if (res==FR_OK){
-      printf("FAT fs remounted\r\n");
-      mod_sd_open_AW();                                                         // open next available file name
-  }
-  else {
-      printf("Remount failed: %d\r\n", res);
-  }
+bool mod_sd_remount_and_open_AW(void){
+  FRESULT res = f_mount(&fat_fs, (TCHAR*)"", 1);
+      if (res != FR_OK){
+          printf("Remount failed: %d\r\n", res);
+          return false;
+      }
+      mod_sd_open_AW();
+      if (!mod_sd_is_open_AW()){
+          printf("File open failed after remount.\r\n");
+          return false;
+      }
+      return true;
 }
 
 bool mod_sd_write_AW(char *buf, int len){
@@ -338,6 +343,7 @@ bool mod_sd_write_AW(char *buf, int len){
       FRESULT fsync_res = f_sync(&fp);                                          // flush to SD card to protect against power loss before unmount
 
       if(fres != FR_OK || fsync_res != FR_OK){                                  // if write or flush failed
+          sd_write_error = 1;
           if(sd_write_prev){                                                    // if previous write successful,
               sd_write_prev = 0;                                                // note that the new write was a failure
               GPIO_PinOutSet(gpioPortH, 15);                                    // turn LED off, only on transition from ok to failed
@@ -345,6 +351,7 @@ bool mod_sd_write_AW(char *buf, int len){
           }
       }
       else {                                                                    // write and sync succeeded
+          sd_write_error = 0;
           if (f_size(&fp)>= SD_FILE_MAX_SIZE){
                         f_close(&fp);
                         sd_file_open = 0;
@@ -461,3 +468,21 @@ void mod_sd_load_config_AW(void){
   }
 
 }
+
+void mod_sd_write_config_AW(unsigned int rate_hz) {
+    TCHAR cfg_file_name[16];
+    mod_sd_ff_encode("config.cfg", cfg_file_name, strlen("config.cfg"));
+    FRESULT fres = f_open(&cfg_fp, cfg_file_name, FA_WRITE | FA_CREATE_ALWAYS);
+    if (fres == FR_OK) {
+        char line[32];
+        UINT bw;
+        int len = snprintf(line, sizeof(line), "sample_rate_hz=%u\n", rate_hz);
+        f_write(&cfg_fp, line, len, &bw);
+        f_close(&cfg_fp);
+        printf("Config saved: sample_rate_hz=%u\r\n", rate_hz);
+    } else {
+        printf("Config write failed: %d (SD not mounted — rate applies this session only)\r\n", fres);
+    }
+}
+
+uint8_t mod_sd_write_error_AW(void) { return sd_write_error; }
